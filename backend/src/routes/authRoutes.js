@@ -6,6 +6,8 @@ import crypto from 'crypto';
 import { protect } from '../middleware/auth.js';
 import supabase from '../config/supabase.js';
 import { sendPasswordResetEmail, isEmailConfigured } from '../utils/emailService.js';
+import { authLimiter, passwordResetLimiter } from '../middleware/security.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -22,7 +24,7 @@ const generateResetToken = () => {
 
 // Register - DISABLED (Admin creates users only)
 // This endpoint is kept for backward compatibility but returns 403
-router.post('/register', [
+router.post('/register', authLimiter, [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -38,7 +40,7 @@ router.post('/register', [
 
 // Login - Role-based authentication
 // Frontend sends selectedRole to validate against user's actual role
-router.post('/login', [
+router.post('/login', authLimiter, [
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').notEmpty().withMessage('Password is required'),
   body('selectedRole').optional().isIn(['admin', 'employer', 'employee']).withMessage('Invalid role selection')
@@ -170,7 +172,7 @@ router.post('/logout', protect, (req, res) => {
  * POST /api/auth/forgot-password
  * Public endpoint - no auth required
  */
-router.post('/forgot-password', [
+router.post('/forgot-password', passwordResetLimiter, [
   body('email').isEmail().withMessage('Please provide a valid email')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -180,12 +182,13 @@ router.post('/forgot-password', [
 
   try {
     const { email } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Find user by email
     const { data: users, error: fetchError } = await supabase
       .from('users')
-      .select('id, name, email, is_active')
-      .eq('email', email.toLowerCase().trim())
+      .select('id, name, email, is_active, supabase_auth_id')
+      .eq('email', normalizedEmail)
       .limit(1);
 
     if (fetchError) {
@@ -210,6 +213,37 @@ router.post('/forgot-password', [
         message: 'If an account exists with this email, you will receive a password reset link.'
       });
     }
+
+    logger.info('Password reset requested', { email: user.email });
+
+    // OPTION 1: Use Supabase Auth for password reset (if user is synced)
+    if (user.supabase_auth_id) {
+      logger.info('Using Supabase Auth for password reset', { email: user.email });
+      
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      
+      // Use Supabase Auth to send password reset email
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(
+        normalizedEmail,
+        {
+          redirectTo: `${frontendUrl}/reset-password`
+        }
+      );
+
+      if (authError) {
+        logger.error('Supabase Auth reset error', { error: authError.message, email: user.email });
+        // Fall through to legacy method below
+      } else {
+        logger.info('Password reset email sent via Supabase Auth', { email: user.email });
+        return res.status(200).json({
+          success: true,
+          message: 'If an account exists with this email, you will receive a password reset link.'
+        });
+      }
+    }
+
+    // OPTION 2: Legacy method (for users not synced to Supabase Auth)
+    logger.info('Using legacy method for password reset', { email: user.email });
 
     // Delete any existing reset tokens for this user
     await supabase
@@ -240,28 +274,23 @@ router.post('/forgot-password', [
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
-    // Log for server monitoring
-    console.log(`[PASSWORD_RESET] Reset requested for user: ${user.email} at ${new Date().toISOString()}`);
-
     // Send password reset email using Resend
     if (isEmailConfigured()) {
       const emailResult = await sendPasswordResetEmail(user.email, user.name, resetUrl);
       
       if (emailResult.success) {
-        console.log('✅ Password reset email sent successfully to:', user.email);
+        logger.info('Password reset email sent successfully', { email: user.email });
       } else {
-        console.error('❌ Failed to send password reset email:', emailResult.error);
+        logger.error('Failed to send password reset email', { error: emailResult.error, email: user.email });
         // Don't expose email failures to user - still return success
       }
     } else {
       // Development mode - log the reset URL for testing
-      console.log('=================================================');
-      console.log('⚠️  RESEND_API_KEY not configured');
-      console.log('📧 In production, set RESEND_API_KEY environment variable');
-      console.log('🔗 Development Reset Link:');
-      console.log(`   ${resetUrl}`);
-      console.log(`⏰ Token expires: ${expiresAt.toLocaleString()}`);
-      console.log('=================================================');
+      logger.info('Email service not configured - development mode', {
+        resetUrl,
+        email: user.email,
+        expiresAt: expiresAt.toISOString(),
+      });
     }
 
     // Always return the same response to prevent email enumeration
@@ -381,10 +410,7 @@ router.post('/reset-password', [
         return res.status(500).json({ message: 'Failed to sync password' });
       }
 
-      console.log('=================================================');
-      console.log('PASSWORD SYNC SUCCESSFUL (Supabase Auth)');
-      console.log(`User: ${email}`);
-      console.log('=================================================');
+      logger.info('Password synced successfully (Supabase Auth)', { email });
 
       return res.status(200).json({
         success: true,
@@ -453,10 +479,7 @@ router.post('/reset-password', [
       .delete()
       .eq('user_id', resetToken.user_id);
 
-    console.log('=================================================');
-    console.log('PASSWORD RESET SUCCESSFUL');
-    console.log(`User ID: ${resetToken.user_id}`);
-    console.log('=================================================');
+    logger.info('Password reset successful (legacy method)', { userId: resetToken.user_id });
 
     res.status(200).json({
       success: true,

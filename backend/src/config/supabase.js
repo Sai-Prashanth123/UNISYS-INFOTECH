@@ -3,18 +3,20 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL || 'https://kwqabttdbdslmjzbcppo.supabase.co';
-// For server-side operations, use SERVICE_ROLE_KEY (bypasses RLS)
-// Get this from: Supabase Dashboard -> Project Settings -> API -> service_role key
+// Validate required environment variables
+const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
+if (!supabaseUrl) {
+  console.error('❌ SUPABASE_URL is required in environment variables');
+  console.error('   Set it in your .env file');
+  process.exit(1);
+}
+
 if (!supabaseServiceKey) {
-  console.error('⚠️  SUPABASE_SERVICE_ROLE_KEY is required in environment variables');
+  console.error('❌ SUPABASE_SERVICE_ROLE_KEY is required in environment variables');
   console.error('   Get it from: Supabase Dashboard -> Project Settings -> API -> service_role key');
-  // Don't exit in development, but warn
-  if (process.env.NODE_ENV === 'production') {
-    process.exit(1);
-  }
+  process.exit(1);
 }
 
 // Create Supabase client with service role key for server-side operations
@@ -45,11 +47,11 @@ export const connectDB = async () => {
     console.error('✗ Supabase connection failed:', error.message);
     console.error('');
     console.error('Please ensure the following are set in your .env file:');
-    console.error('  1. SUPABASE_URL=https://kwqabttdbdslmjzbcppo.supabase.co');
+    console.error('  1. SUPABASE_URL=<your-supabase-url>');
     console.error('  2. SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>');
     console.error('');
-    console.error('Get your service_role key from:');
-    console.error('  Supabase Dashboard -> Project Settings -> API -> service_role key');
+    console.error('Get your credentials from:');
+    console.error('  Supabase Dashboard -> Project Settings -> API');
     return false;
   }
 };

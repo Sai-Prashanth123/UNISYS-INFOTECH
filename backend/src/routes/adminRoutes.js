@@ -3,6 +3,8 @@ import { body, validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import { protect, authorize } from '../middleware/auth.js';
 import supabase from '../config/supabase.js';
+import { generateTempPassword } from '../utils/passwordGenerator.js';
+import logger from '../utils/logger.js';
 
 const router = express.Router();
 
@@ -70,14 +72,14 @@ router.post('/users/create', protect, authorize('admin'), [
       });
 
       if (authError) {
-        console.error('Supabase Auth user creation error:', authError);
+        logger.error('Supabase Auth user creation error', { error: authError.message, email: normalizedEmail });
         // Continue even if Supabase Auth fails - will use fallback password reset
       } else {
         supabaseAuthUser = authData.user;
-        console.log(`✅ Created Supabase Auth user for: ${normalizedEmail}`);
+        logger.info('Created Supabase Auth user', { email: normalizedEmail });
       }
     } catch (authErr) {
-      console.error('Supabase Auth error:', authErr);
+      logger.error('Supabase Auth error', { error: authErr.message, email: normalizedEmail });
       // Continue with custom user creation
     }
 
@@ -106,13 +108,13 @@ router.post('/users/create', protect, authorize('admin'), [
       .single();
 
     if (error) {
-      console.error('Error creating user:', error);
+      logger.error('Error creating user', { error: error.message, email: normalizedEmail });
       // If custom user creation fails but Supabase Auth user was created, clean up
       if (supabaseAuthUser) {
         try {
           await supabase.auth.admin.deleteUser(supabaseAuthUser.id);
         } catch (cleanupErr) {
-          console.error('Failed to cleanup Supabase Auth user:', cleanupErr);
+          logger.error('Failed to cleanup Supabase Auth user', { error: cleanupErr.message });
         }
       }
       return res.status(500).json({ message: 'Server error', error: error.message });
@@ -156,7 +158,7 @@ router.get('/users', protect, authorize('admin'), async (req, res) => {
     const { data: users, error } = await query;
     
     if (error) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users', { error: error.message });
       return res.status(500).json({ message: 'Server error', error: error.message });
     }
 
@@ -216,7 +218,7 @@ router.get('/employers', protect, authorize('admin'), async (req, res) => {
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('Error fetching employers:', error);
+      logger.error('Error fetching employers', { error: error.message });
       return res.status(500).json({ message: 'Server error', error: error.message });
     }
 
@@ -333,7 +335,7 @@ router.put('/users/:id', protect, authorize('admin'), [
       .single();
 
     if (error) {
-      console.error('Error updating user:', error);
+      logger.error('Error updating user', { error: error.message, userId: req.params.id });
       return res.status(500).json({ message: 'Server error', error: error.message });
     }
 
@@ -382,7 +384,7 @@ router.delete('/users/:id', protect, authorize('admin'), async (req, res) => {
       .eq('id', req.params.id);
 
     if (error) {
-      console.error('Error deleting user:', error);
+      logger.error('Error deleting user', { error: error.message, userId: req.params.id });
       return res.status(500).json({ message: 'Server error', error: error.message });
     }
 
@@ -427,8 +429,8 @@ router.post('/users/:id/sync-auth', protect, authorize('admin'), async (req, res
       });
     }
 
-    // Create user in Supabase Auth
-    const password = temporaryPassword || 'TempPass123!'; // Temporary password
+    // Create user in Supabase Auth with secure temporary password
+    const password = temporaryPassword || generateTempPassword();
     
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: user.email,
@@ -441,7 +443,7 @@ router.post('/users/:id/sync-auth', protect, authorize('admin'), async (req, res
     });
 
     if (authError) {
-      console.error('Supabase Auth sync error:', authError);
+      logger.error('Supabase Auth sync error', { error: authError.message, email: user.email });
       return res.status(500).json({ 
         message: 'Failed to sync user to Supabase Auth', 
         error: authError.message 
@@ -455,10 +457,10 @@ router.post('/users/:id/sync-auth', protect, authorize('admin'), async (req, res
       .eq('id', id);
 
     if (updateError) {
-      console.error('Error updating user with auth ID:', updateError);
+      logger.error('Error updating user with auth ID', { error: updateError.message, userId: id });
     }
 
-    console.log(`✅ Synced user ${user.email} to Supabase Auth`);
+    logger.info('Synced user to Supabase Auth', { email: user.email });
 
     res.status(200).json({
       success: true,
@@ -632,10 +634,10 @@ router.post('/users/sync-all-auth', protect, authorize('admin'), async (req, res
 
     for (const user of users) {
       try {
-        // Create in Supabase Auth with a temporary password
+        // Create in Supabase Auth with a secure temporary password
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
           email: user.email,
-          password: 'TempPass123!', // Users must reset via email
+          password: generateTempPassword(), // Secure random password - users must reset via email
           email_confirm: true,
           user_metadata: {
             name: user.name,
@@ -656,7 +658,7 @@ router.post('/users/sync-all-auth', protect, authorize('admin'), async (req, res
           .eq('id', user.id);
 
         synced++;
-        console.log(`✅ Synced: ${user.email}`);
+        logger.info('User synced to Supabase Auth', { email: user.email });
       } catch (err) {
         failed++;
         errors.push({ email: user.email, error: err.message });

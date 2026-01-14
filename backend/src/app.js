@@ -15,6 +15,16 @@ import contactMessageRoutes from './routes/contactMessageRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import passwordChangeRoutes from './routes/passwordChangeRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
+import {
+  helmetConfig,
+  generalLimiter,
+  sanitizeData,
+  xssProtection,
+  enforceHTTPS,
+  validateCORS,
+  requestLogger,
+} from './middleware/security.js';
+import logger from './utils/logger.js';
 
 dotenv.config();
 
@@ -23,14 +33,52 @@ const app = express();
 // Connect to Supabase
 connectDB();
 
-// Middleware
+// Trust proxy - important for rate limiting and getting real IPs behind proxies/load balancers
+app.set('trust proxy', 1);
+
+// Security Middleware (apply before other middleware)
+app.use(enforceHTTPS); // Force HTTPS in production
+app.use(helmetConfig); // Security headers
+app.use(requestLogger); // Request logging
+
+// CORS Configuration - strict in production
+const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // In production, strictly enforce allowed origin
+    if (process.env.NODE_ENV === 'production') {
+      if (origin === allowedOrigin) {
+        callback(null, true);
+      } else {
+        logger.warn('Blocked CORS request from unauthorized origin', { origin });
+        callback(new Error('Not allowed by CORS'));
+      }
+    } else {
+      // In development, allow all origins
+      callback(null, true);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-// Increase payload limit for base64 images
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+app.use(validateCORS); // Additional CORS validation
+
+// Body parser with size limits
+// Reduced from 10mb to 2mb for better security (can be increased if needed)
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+// Data sanitization
+app.use(sanitizeData); // NoSQL injection protection
+app.use(xssProtection); // XSS protection
+
+// General rate limiting (applied to all routes)
+app.use(generalLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -46,9 +94,42 @@ app.use('/api/contact-messages', contactMessageRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/password-change', passwordChangeRoutes);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'Server is running' });
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+  try {
+    // Basic health check
+    const health = {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+    };
+
+    // Check database connection if requested
+    if (req.query.detailed === 'true') {
+      try {
+        const { default: supabase } = await import('./config/supabase.js');
+        const { error } = await supabase.from('users').select('id').limit(1);
+        health.database = error ? 'error' : 'connected';
+        if (error) {
+          health.databaseError = error.message;
+        }
+      } catch (dbError) {
+        health.database = 'error';
+        health.databaseError = dbError.message;
+      }
+    }
+
+    const statusCode = health.database === 'error' ? 503 : 200;
+    res.status(statusCode).json(health);
+  } catch (error) {
+    logger.error('Health check failed', { error: error.message });
+    res.status(503).json({
+      status: 'error',
+      message: 'Health check failed',
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // 404 handler
