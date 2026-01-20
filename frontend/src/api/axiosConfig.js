@@ -1,11 +1,30 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/index.js';
 
-// Use environment variable if set, otherwise use production backend URL or localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.PROD 
-    ? 'https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api'
-    : 'http://localhost:5001/api');
+// Determine API URL based on environment
+// Priority: 1. VITE_API_URL env var, 2. Check if running on Azure/localhost, 3. Default to Azure backend
+const getApiBaseUrl = () => {
+  // If environment variable is explicitly set, use it
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Check if we're running on localhost (development)
+  const isLocalhost = 
+    window.location.hostname === 'localhost' || 
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.includes('localhost');
+  
+  // If on localhost, use local backend, otherwise use Azure backend
+  if (isLocalhost) {
+    return 'http://localhost:5001/api';
+  }
+  
+  // Production: Always use Azure backend URL
+  return 'https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,

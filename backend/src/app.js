@@ -40,7 +40,7 @@ app.use(enforceHTTPS); // Force HTTPS in production
 app.use(helmetConfig); // Security headers
 app.use(requestLogger); // Request logging
 
-// CORS Configuration - strict in production
+// CORS Configuration - Allow Azure Static Web Apps and localhost
 const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
 // Allow Azure Static Web Apps origin (can have multiple subdomains)
 const allowedOrigins = [
@@ -54,11 +54,20 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
+    // Always allow Azure Static Web Apps (any subdomain)
+    if (origin.includes('.azurestaticapps.net')) {
+      return callback(null, true);
+    }
+    
+    // Always allow localhost for development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
     // In production, check against allowed origins list
     if (process.env.NODE_ENV === 'production') {
-      // Check if origin matches any allowed origin or starts with Azure Static Web Apps pattern
+      // Check if origin matches any allowed origin
       const isAllowed = allowedOrigins.some(allowed => origin === allowed) ||
-                       origin.includes('.azurestaticapps.net') ||
                        origin === allowedOrigin;
       
       if (isAllowed) {
