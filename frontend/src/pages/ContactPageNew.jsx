@@ -206,7 +206,7 @@ export const ContactPageNew = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    pattern="[0-9\-()+ ]*"
+                    pattern="[0-9\s\-()+]*"
                     required
                     className={`w-full px-4 py-3 rounded-lg bg-[#1a2942]/50 border ${errors.phone ? 'border-red-500' : 'border-blue-900/30'} text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors`}
                     placeholder="Enter your phone number"
