@@ -42,17 +42,29 @@ app.use(requestLogger); // Request logging
 
 // CORS Configuration - strict in production
 const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+// Allow Azure Static Web Apps origin (can have multiple subdomains)
+const allowedOrigins = [
+  allowedOrigin,
+  'https://happy-ocean-08bd11c10.2.azurestaticapps.net', // Azure Static Web App URL
+  'http://localhost:5173', // Local development
+];
+
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
-    // In production, strictly enforce allowed origin
+    // In production, check against allowed origins list
     if (process.env.NODE_ENV === 'production') {
-      if (origin === allowedOrigin) {
+      // Check if origin matches any allowed origin or starts with Azure Static Web Apps pattern
+      const isAllowed = allowedOrigins.some(allowed => origin === allowed) ||
+                       origin.includes('.azurestaticapps.net') ||
+                       origin === allowedOrigin;
+      
+      if (isAllowed) {
         callback(null, true);
       } else {
-        logger.warn('Blocked CORS request from unauthorized origin', { origin });
+        logger.warn('Blocked CORS request from unauthorized origin', { origin, allowedOrigins });
         callback(new Error('Not allowed by CORS'));
       }
     } else {
