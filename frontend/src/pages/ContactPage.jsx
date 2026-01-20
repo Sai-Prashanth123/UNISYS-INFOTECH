@@ -56,12 +56,9 @@ export const ContactPage = () => {
     setSubmitStatus({ type: '', message: '' });
 
     try {
-      // Determine API URL - use environment variable or detect environment
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      // Always use production Azure backend URL (or override with VITE_API_URL env var)
       const API_URL = import.meta.env.VITE_API_URL || 
-        (isLocalhost 
-          ? 'http://localhost:5001/api'
-          : 'https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api');
+        'https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api';
       const response = await axios.post(`${API_URL}/contacts`, formData);
       
       setSubmitStatus({
