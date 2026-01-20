@@ -17,7 +17,6 @@ import passwordChangeRoutes from './routes/passwordChangeRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 import {
   helmetConfig,
-  generalLimiter,
   sanitizeData,
   xssProtection,
   enforceHTTPS,
@@ -33,7 +32,7 @@ const app = express();
 // Connect to Supabase
 connectDB();
 
-// Trust proxy - important for rate limiting and getting real IPs behind proxies/load balancers
+// Trust proxy - important for getting real IPs behind proxies/load balancers
 app.set('trust proxy', 1);
 
 // Security Middleware (apply before other middleware)
@@ -76,9 +75,6 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 // Data sanitization
 app.use(sanitizeData); // NoSQL injection protection
 app.use(xssProtection); // XSS protection
-
-// General rate limiting (applied to all routes)
-app.use(generalLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);

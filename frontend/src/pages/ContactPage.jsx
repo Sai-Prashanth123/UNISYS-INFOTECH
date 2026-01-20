@@ -56,7 +56,11 @@ export const ContactPage = () => {
     setSubmitStatus({ type: '', message: '' });
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+      // Use environment variable if set, otherwise use production backend URL or localhost for development
+      const API_URL = import.meta.env.VITE_API_URL || 
+        (import.meta.env.PROD 
+          ? 'https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api'
+          : 'http://localhost:5001/api');
       const response = await axios.post(`${API_URL}/contacts`, formData);
       
       setSubmitStatus({

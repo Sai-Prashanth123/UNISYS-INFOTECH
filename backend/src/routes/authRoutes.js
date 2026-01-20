@@ -6,7 +6,6 @@ import crypto from 'crypto';
 import { protect } from '../middleware/auth.js';
 import supabase from '../config/supabase.js';
 import { sendPasswordResetEmail, isEmailConfigured } from '../utils/emailService.js';
-import { authLimiter, passwordResetLimiter } from '../middleware/security.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -24,7 +23,7 @@ const generateResetToken = () => {
 
 // Register - DISABLED (Admin creates users only)
 // This endpoint is kept for backward compatibility but returns 403
-router.post('/register', authLimiter, [
+router.post('/register', [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -40,7 +39,7 @@ router.post('/register', authLimiter, [
 
 // Login - Role-based authentication
 // Frontend sends selectedRole to validate against user's actual role
-router.post('/login', authLimiter, [
+router.post('/login', [
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').notEmpty().withMessage('Password is required'),
   body('selectedRole').optional().isIn(['admin', 'employer', 'employee']).withMessage('Invalid role selection')
@@ -172,7 +171,7 @@ router.post('/logout', protect, (req, res) => {
  * POST /api/auth/forgot-password
  * Public endpoint - no auth required
  */
-router.post('/forgot-password', passwordResetLimiter, [
+router.post('/forgot-password', [
   body('email').isEmail().withMessage('Please provide a valid email')
 ], async (req, res) => {
   const errors = validationResult(req);

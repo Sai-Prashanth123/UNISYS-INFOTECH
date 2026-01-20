@@ -4,7 +4,7 @@ Create a `.env` file in the frontend directory with the following variables:
 
 ```env
 # API Configuration
-VITE_API_URL=http://localhost:5001/api
+VITE_API_URL=https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api
 
 # Supabase Configuration (for client-side)
 # Use ANON key only (not service role key)
@@ -16,7 +16,7 @@ VITE_APP_NAME=Unisys InfoTech
 VITE_APP_VERSION=1.0.0
 
 # Environment
-VITE_NODE_ENV=development
+VITE_NODE_ENV=production
 ```
 
 ## Required Variables

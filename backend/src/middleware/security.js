@@ -1,7 +1,8 @@
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import logger from '../utils/logger.js';
+
+// NOTE: rate limiting was intentionally removed (Azure/proxy environments and app requirements).
 
 /**
  * Helmet - Security headers
@@ -23,77 +24,6 @@ export const helmetConfig = helmet({
   },
   crossOriginEmbedderPolicy: false, // Allow loading resources from other origins
   crossOriginResourcePolicy: { policy: "cross-origin" },
-});
-
-/**
- * General Rate Limiter
- * Limits requests from a single IP to prevent abuse
- */
-export const generalLimiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  handler: (req, res) => {
-    logger.warn('Rate limit exceeded', {
-      ip: req.ip,
-      path: req.path,
-      method: req.method,
-    });
-    res.status(429).json({
-      success: false,
-      message: 'Too many requests from this IP, please try again later.',
-    });
-  },
-});
-
-/**
- * Strict Rate Limiter for Authentication Routes
- * More restrictive to prevent brute force attacks
- */
-export const authLimiter = rateLimit({
-  windowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS) || 5, // limit each IP to 5 requests per windowMs
-  skipSuccessfulRequests: false, // Count successful requests
-  message: 'Too many authentication attempts, please try again after 15 minutes.',
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (req, res) => {
-    logger.warn('Auth rate limit exceeded', {
-      ip: req.ip,
-      path: req.path,
-      method: req.method,
-      email: req.body?.email || 'N/A',
-    });
-    res.status(429).json({
-      success: false,
-      message: 'Too many authentication attempts, please try again after 15 minutes.',
-    });
-  },
-});
-
-/**
- * Password Reset Rate Limiter
- * Prevent abuse of password reset functionality
- */
-export const passwordResetLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // limit each IP to 3 password reset requests per hour
-  skipSuccessfulRequests: false,
-  message: 'Too many password reset attempts, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (req, res) => {
-    logger.warn('Password reset rate limit exceeded', {
-      ip: req.ip,
-      email: req.body?.email || 'N/A',
-    });
-    res.status(429).json({
-      success: false,
-      message: 'Too many password reset attempts, please try again after 1 hour.',
-    });
-  },
 });
 
 /**
@@ -172,11 +102,24 @@ export const xssProtection = (req, res, next) => {
 /**
  * HTTPS Enforcement Middleware
  * Redirects HTTP requests to HTTPS in production
- * Disabled for Docker/container environments
+ * Disabled for Docker/container environments and cloud platforms that handle HTTPS termination
  */
 export const enforceHTTPS = (req, res, next) => {
   // Skip HTTPS enforcement in Docker/container environments or when ENFORCE_HTTPS=false
   if (process.env.ENFORCE_HTTPS === 'false' || process.env.DOCKER === 'true') {
+    return next();
+  }
+  
+  // Skip HTTPS enforcement for cloud platforms that handle HTTPS termination
+  // Azure Container Apps, AWS ALB, GCP Cloud Run, etc. handle HTTPS at the load balancer
+  const isCloudPlatform = 
+    process.env.WEBSITE_SITE_NAME || // Azure App Service
+    process.env.CONTAINER_APP_NAME || // Azure Container Apps
+    process.env.AWS_EXECUTION_ENV || // AWS Lambda/ECS
+    process.env.K_SERVICE || // Google Cloud Run
+    req.headers['x-forwarded-proto'] === 'https'; // Already HTTPS at load balancer
+  
+  if (isCloudPlatform || process.env.ALLOW_HTTP === 'true') {
     return next();
   }
   
@@ -188,8 +131,7 @@ export const enforceHTTPS = (req, res, next) => {
     }
     // Skip redirect for localhost/container environments
     if (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || 
-        req.headers.host?.includes('localhost') || 
-        process.env.ALLOW_HTTP === 'true') {
+        req.headers.host?.includes('localhost')) {
       return next();
     }
     
@@ -254,9 +196,6 @@ export const requestLogger = (req, res, next) => {
 
 export default {
   helmetConfig,
-  generalLimiter,
-  authLimiter,
-  passwordResetLimiter,
   sanitizeData,
   xssProtection,
   enforceHTTPS,

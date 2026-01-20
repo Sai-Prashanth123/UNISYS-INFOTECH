@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/index.js';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+// Use environment variable if set, otherwise use production backend URL or localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD 
+    ? 'https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api'
+    : 'http://localhost:5001/api');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
