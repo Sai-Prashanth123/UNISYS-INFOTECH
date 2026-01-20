@@ -14,7 +14,8 @@ try {
   process.exit(1);
 }
 
-const PORT = process.env.PORT || 5001;
+// Default to 5001 for development, 80 for production
+const PORT = process.env.PORT || (process.env.NODE_ENV === 'production' ? 80 : 5001);
 
 // Start server
 const server = app.listen(PORT, () => {

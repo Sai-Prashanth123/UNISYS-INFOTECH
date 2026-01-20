@@ -56,8 +56,8 @@ export const ContactPage = () => {
     setSubmitStatus({ type: '', message: '' });
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const response = await axios.post(`${API_URL}/api/contacts`, formData);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+      const response = await axios.post(`${API_URL}/contacts`, formData);
       
       setSubmitStatus({
         type: 'success',

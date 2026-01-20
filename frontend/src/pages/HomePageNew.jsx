@@ -250,7 +250,7 @@ export const HomePageNew = () => {
                               src={logo.logoUrl} 
                               alt={logo.name || 'Client Logo'}
                               loading="eager"
-                              fetchPriority="high"
+                              fetchpriority="high"
                               decoding="async"
                               className="h-16 md:h-20 w-auto max-w-[150px] md:max-w-[200px] object-contain filter brightness-90 group-hover:brightness-100 transition-all duration-300"
                               onError={(e) => {
@@ -323,7 +323,7 @@ export const HomePageNew = () => {
                   src="/unysisinotechoffice.png" 
                   alt="UNISYS INFOTECH Office"
                   loading="eager"
-                  fetchPriority="high"
+                  fetchpriority="high"
                   decoding="async"
                   className="w-full h-full object-cover"
                 />

@@ -9,13 +9,15 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.
 
 if (!supabaseUrl) {
   console.error('❌ SUPABASE_URL is required in environment variables');
-  console.error('   Set it in your .env file');
+  console.error('   Set it as an environment variable or in your .env file');
+  console.error('   For Docker: Pass it via -e flag or docker-compose environment section');
   process.exit(1);
 }
 
 if (!supabaseServiceKey) {
-  console.error('❌ SUPABASE_SERVICE_ROLE_KEY is required in environment variables');
+  console.error('❌ SUPABASE_SERVICE_ROLE_KEY or SUPABASE_ANON_KEY is required in environment variables');
   console.error('   Get it from: Supabase Dashboard -> Project Settings -> API -> service_role key');
+  console.error('   For Docker: Pass it via -e flag or docker-compose environment section');
   process.exit(1);
 }
 

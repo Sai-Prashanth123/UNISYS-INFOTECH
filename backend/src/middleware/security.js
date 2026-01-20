@@ -172,16 +172,32 @@ export const xssProtection = (req, res, next) => {
 /**
  * HTTPS Enforcement Middleware
  * Redirects HTTP requests to HTTPS in production
+ * Disabled for Docker/container environments
  */
 export const enforceHTTPS = (req, res, next) => {
+  // Skip HTTPS enforcement in Docker/container environments or when ENFORCE_HTTPS=false
+  if (process.env.ENFORCE_HTTPS === 'false' || process.env.DOCKER === 'true') {
+    return next();
+  }
+  
   if (process.env.NODE_ENV === 'production') {
-    if (req.headers['x-forwarded-proto'] !== 'https' && !req.secure) {
-      logger.info('Redirecting HTTP to HTTPS', {
-        originalUrl: req.originalUrl,
-        ip: req.ip,
-      });
-      return res.redirect(301, `https://${req.hostname}${req.originalUrl}`);
+    // Only enforce HTTPS if we're behind a proxy that sets x-forwarded-proto
+    // For local Docker containers, allow HTTP
+    if (req.headers['x-forwarded-proto'] === 'https' || req.secure) {
+      return next();
     }
+    // Skip redirect for localhost/container environments
+    if (req.hostname === 'localhost' || req.hostname === '127.0.0.1' || 
+        req.headers.host?.includes('localhost') || 
+        process.env.ALLOW_HTTP === 'true') {
+      return next();
+    }
+    
+    logger.info('Redirecting HTTP to HTTPS', {
+      originalUrl: req.originalUrl,
+      ip: req.ip,
+    });
+    return res.redirect(301, `https://${req.hostname}${req.originalUrl}`);
   }
   next();
 };

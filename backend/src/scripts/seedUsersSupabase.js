@@ -17,7 +17,7 @@ const seedUsers = async () => {
     const { data: adminUser, error: adminError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', 'admin@unisys.com')
+      .eq('email', 'admin@unisysinfotech.com')
       .maybeSingle();
 
     if (adminError && adminError.code !== 'PGRST116') {
@@ -29,7 +29,7 @@ const seedUsers = async () => {
         .from('users')
         .insert({
           name: 'Admin User',
-          email: 'admin@unisys.com',
+          email: 'admin@unisysinfotech.com',
           password: hashedPassword,
           role: 'admin',
           is_active: true
@@ -39,7 +39,7 @@ const seedUsers = async () => {
 
       if (createAdminError) throw createAdminError;
       console.log('✓ Admin user created');
-      console.log('  Email: admin@unisys.com');
+      console.log('  Email: admin@unisysinfotech.com');
       console.log('  Password: password123');
       console.log('  Role: admin');
     } else {
@@ -128,7 +128,7 @@ const seedUsers = async () => {
     console.log('ALL CREDENTIALS SUMMARY');
     console.log('='.repeat(50));
     console.log('\n1. ADMIN ACCESS');
-    console.log('   Email: admin@unisys.com');
+    console.log('   Email: admin@unisysinfotech.com');
     console.log('   Password: password123');
     console.log('   Access: All admin pages, user management, reports\n');
 

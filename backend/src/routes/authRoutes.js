@@ -90,7 +90,7 @@ router.post('/login', authLimiter, [
       return res.status(403).json({ 
         message: 'Your account has been deactivated. Please contact your administrator to reactivate your account.',
         errorCode: 'ACCOUNT_DEACTIVATED',
-        supportEmail: 'admin@unisys.com'
+        supportEmail: 'admin@unisysinfotech.com'
       });
     }
 
