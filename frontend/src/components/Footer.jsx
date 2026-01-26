@@ -10,8 +10,8 @@ export const Footer = () => {
   return (
     <footer className={`${isDark ? 'bg-slate-900 text-white border-slate-800' : 'bg-slate-900 text-white'} border-t animate-fade-in`}>
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
           
           {/* Company Info */}
           <div className="animate-slide-up">
@@ -19,7 +19,7 @@ export const Footer = () => {
               <img 
                 src="/logo.png" 
                 alt="UNISYS INFOTECH" 
-                className="h-28 w-auto"
+                className="h-20 sm:h-24 md:h-28 w-auto"
               />
             </div>
             <p className="text-gray-400 mb-4">
@@ -95,11 +95,18 @@ export const Footer = () => {
           <div className="animate-slide-up" style={{animationDelay: '0.3s'}}>
             <h3 className="text-lg font-bold mb-6">Contact Info</h3>
             <ul className="space-y-4">
-              <li className="flex items-start space-x-3">
-                <MapPin size={20} className="text-secondary flex-shrink-0 mt-1" />
-                <span className="text-gray-400">
-                  Cornelius, NC 28031<br />United States
-                </span>
+              <li>
+                <a 
+                  href="https://www.google.com/maps/search/?api=1&query=20830+Torrence+Chapel+Rd+Ste+203+Cornelius+NC+28031"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start space-x-3 text-gray-400 hover:text-secondary transition-colors duration-300 cursor-pointer group"
+                >
+                  <MapPin size={20} className="text-secondary flex-shrink-0 mt-1 group-hover:scale-110 transition-transform" />
+                  <span className="group-hover:underline">
+                    20830 Torrence Chapel Rd Ste 203<br />Cornelius, NC 28031<br />United States
+                  </span>
+                </a>
               </li>
               <li className="flex items-center space-x-3">
                 <Mail size={20} className="text-secondary flex-shrink-0" />
@@ -114,7 +121,7 @@ export const Footer = () => {
 
       {/* Footer Bottom */}
       <div className={`${isDark ? 'bg-slate-800 border-slate-800' : 'bg-slate-800'} border-t`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="flex justify-center">
             <div className="text-gray-400 text-center md:text-left animate-slide-up">
               <p>&copy; 2022 UNISYS INFOTECH. All rights reserved.</p>

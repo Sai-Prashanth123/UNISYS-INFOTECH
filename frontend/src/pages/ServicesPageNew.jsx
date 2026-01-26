@@ -90,7 +90,7 @@ export const ServicesPageNew = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] text-white">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-12 px-4 overflow-hidden">
+      <section className="relative pt-24 sm:pt-28 md:pt-32 pb-8 sm:pb-10 md:pb-12 px-4 sm:px-6 overflow-hidden">
         {/* Animated background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-blue-500/10 to-transparent"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)]"></div>
@@ -102,19 +102,19 @@ export const ServicesPageNew = () => {
           </div>
 
           {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight text-white">
             Our Services
           </h1>
         </div>
       </section>
 
       {/* Services Grid */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Left Side - Services Image */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-24">
+            <div className="lg:col-span-1 mb-8 lg:mb-0">
+              <div className="sticky top-20 sm:top-24">
                 <div className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20">
                   <img 
                     src="/unisysinfotechservicespage.png" 
@@ -127,26 +127,26 @@ export const ServicesPageNew = () => {
             </div>
 
             {/* Right Side - Services Grid */}
-            <div className="lg:col-span-2 grid md:grid-cols-2 gap-8">
+            <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6 sm:gap-8">
             {services.map((service, idx) => {
               const ServiceIcon = service.icon;
               return (
                 <div
                   key={idx}
-                  className={`group p-8 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border ${service.borderColor} hover:border-opacity-100 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20`}
+                  className={`group p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border ${service.borderColor} hover:border-opacity-100 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20`}
                 >
                   {/* Icon */}
-                  <div className={`w-16 h-16 rounded-xl ${service.bgColor} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                    <ServiceIcon className={`w-8 h-8 ${service.color}`} />
+                  <div className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl ${service.bgColor} flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                    <ServiceIcon className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 ${service.color}`} />
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-2xl font-bold mb-4 text-white group-hover:text-blue-300 transition-colors duration-300">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-white group-hover:text-blue-300 transition-colors duration-300">
                     {service.title}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-slate-400 mb-6 leading-relaxed">
+                  <p className="text-slate-400 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">
                     {service.description}
                   </p>
 
@@ -167,21 +167,21 @@ export const ServicesPageNew = () => {
       </section>
 
       {/* Technologies & Tools Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-white px-4">
               Technologies & Tools We Use
             </h2>
-            <p className="text-lg text-slate-400 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg text-slate-400 max-w-3xl mx-auto px-4">
               Leveraging cutting-edge technologies to deliver exceptional solutions
             </p>
           </div>
 
           {/* Frontend Technologies */}
-          <div className="mb-12 overflow-hidden relative">
-            <h3 className="text-2xl font-bold text-white mb-6 text-center">Frontend Development</h3>
-            <div className="flex gap-4 animate-scroll-left hover:[animation-play-state:paused]">
+          <div className="mb-8 sm:mb-10 md:mb-12 overflow-hidden relative">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 text-center px-4">Frontend Development</h3>
+            <div className="flex gap-3 sm:gap-4 animate-scroll-left hover:[animation-play-state:paused]">
               {[...Array(3)].flatMap(() => [
                 { name: 'React', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg' },
                 { name: 'Vue.js', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vuejs/vuejs-original.svg' },
@@ -192,23 +192,23 @@ export const ServicesPageNew = () => {
               ]).map((tech, idx) => (
                 <div 
                   key={idx} 
-                  className="group flex-shrink-0 p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[150px]"
+                  className="group flex-shrink-0 p-4 sm:p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[120px] sm:min-w-[150px]"
                 >
                   <img 
                     src={tech.logo} 
                     alt={tech.name}
                     loading="lazy"
-                    className="w-12 h-12 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"
+                    className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300"
                   />
-                  <span className="text-white font-semibold text-sm">{tech.name}</span>
+                  <span className="text-white font-semibold text-xs sm:text-sm">{tech.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Backend Technologies */}
-          <div className="mb-12 overflow-hidden relative">
-            <h3 className="text-2xl font-bold text-white mb-6 text-center">Backend Development</h3>
+          <div className="mb-8 sm:mb-10 md:mb-12 overflow-hidden relative">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 text-center px-4">Backend Development</h3>
             <div className="flex gap-4 animate-scroll-right hover:[animation-play-state:paused]">
               {[...Array(3)].flatMap(() => [
                 { name: 'Node.js', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg' },
@@ -220,23 +220,23 @@ export const ServicesPageNew = () => {
               ]).map((tech, idx) => (
                 <div 
                   key={idx} 
-                  className="group flex-shrink-0 p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[150px]"
+                  className="group flex-shrink-0 p-4 sm:p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[120px] sm:min-w-[150px]"
                 >
                   <img 
                     src={tech.logo} 
                     alt={tech.name}
                     loading="lazy"
-                    className="w-12 h-12 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"
+                    className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300"
                   />
-                  <span className="text-white font-semibold text-sm">{tech.name}</span>
+                  <span className="text-white font-semibold text-xs sm:text-sm">{tech.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Database Technologies */}
-          <div className="mb-12 overflow-hidden relative">
-            <h3 className="text-2xl font-bold text-white mb-6 text-center">Databases</h3>
+          <div className="mb-8 sm:mb-10 md:mb-12 overflow-hidden relative">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 text-center px-4">Databases</h3>
             <div className="flex gap-4 animate-scroll-left hover:[animation-play-state:paused]">
               {[...Array(3)].flatMap(() => [
                 { name: 'MySQL', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg' },
@@ -248,23 +248,23 @@ export const ServicesPageNew = () => {
               ]).map((tech, idx) => (
                 <div 
                   key={idx} 
-                  className="group flex-shrink-0 p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[150px]"
+                  className="group flex-shrink-0 p-4 sm:p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[120px] sm:min-w-[150px]"
                 >
                   <img 
                     src={tech.logo} 
                     alt={tech.name}
                     loading="lazy"
-                    className="w-12 h-12 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"
+                    className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300"
                   />
-                  <span className="text-white font-semibold text-sm">{tech.name}</span>
+                  <span className="text-white font-semibold text-xs sm:text-sm">{tech.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Cloud & DevOps */}
-          <div className="mb-12 overflow-hidden relative">
-            <h3 className="text-2xl font-bold text-white mb-6 text-center">Cloud & DevOps</h3>
+          <div className="mb-8 sm:mb-10 md:mb-12 overflow-hidden relative">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 text-center px-4">Cloud & DevOps</h3>
             <div className="flex gap-4 animate-scroll-right hover:[animation-play-state:paused]">
               {[...Array(3)].flatMap(() => [
                 { name: 'AWS', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg' },
@@ -276,23 +276,23 @@ export const ServicesPageNew = () => {
               ]).map((tech, idx) => (
                 <div 
                   key={idx} 
-                  className="group flex-shrink-0 p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[150px]"
+                  className="group flex-shrink-0 p-4 sm:p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[120px] sm:min-w-[150px]"
                 >
                   <img 
                     src={tech.logo} 
                     alt={tech.name}
                     loading="lazy"
-                    className="w-12 h-12 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"
+                    className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300"
                   />
-                  <span className="text-white font-semibold text-sm">{tech.name}</span>
+                  <span className="text-white font-semibold text-xs sm:text-sm">{tech.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Testing & QA */}
-          <div className="mb-12 overflow-hidden relative">
-            <h3 className="text-2xl font-bold text-white mb-6 text-center">Testing & QA</h3>
+          <div className="mb-8 sm:mb-10 md:mb-12 overflow-hidden relative">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 text-center px-4">Testing & QA</h3>
             <div className="flex gap-4 animate-scroll-left hover:[animation-play-state:paused]">
               {[...Array(3)].flatMap(() => [
                 { name: 'Selenium', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/selenium/selenium-original.svg' },
@@ -304,23 +304,23 @@ export const ServicesPageNew = () => {
               ]).map((tech, idx) => (
                 <div 
                   key={idx} 
-                  className="group flex-shrink-0 p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[150px]"
+                  className="group flex-shrink-0 p-4 sm:p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[120px] sm:min-w-[150px]"
                 >
                   <img 
                     src={tech.logo} 
                     alt={tech.name}
                     loading="lazy"
-                    className="w-12 h-12 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"
+                    className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300"
                   />
-                  <span className="text-white font-semibold text-sm">{tech.name}</span>
+                  <span className="text-white font-semibold text-xs sm:text-sm">{tech.name}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Data & Analytics */}
-          <div className="mb-12 overflow-hidden relative">
-            <h3 className="text-2xl font-bold text-white mb-6 text-center">Data & Analytics</h3>
+          <div className="mb-8 sm:mb-10 md:mb-12 overflow-hidden relative">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 text-center px-4">Data & Analytics</h3>
             <div className="flex gap-4 animate-scroll-right hover:[animation-play-state:paused]">
               {[...Array(3)].flatMap(() => [
                 { name: 'Python', logo: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg' },
@@ -332,15 +332,15 @@ export const ServicesPageNew = () => {
               ]).map((tech, idx) => (
                 <div 
                   key={idx} 
-                  className="group flex-shrink-0 p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[150px]"
+                  className="group flex-shrink-0 p-4 sm:p-6 rounded-xl bg-[#1a2942]/30 border border-blue-900/30 text-center hover:border-blue-500/50 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20 cursor-pointer min-w-[120px] sm:min-w-[150px]"
                 >
                   <img 
                     src={tech.logo} 
                     alt={tech.name}
                     loading="lazy"
-                    className="w-12 h-12 mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"
+                    className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300"
                   />
-                  <span className="text-white font-semibold text-sm">{tech.name}</span>
+                  <span className="text-white font-semibold text-xs sm:text-sm">{tech.name}</span>
                 </div>
               ))}
             </div>
@@ -350,26 +350,26 @@ export const ServicesPageNew = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="p-12 rounded-3xl bg-gradient-to-br from-blue-600/20 to-blue-500/10 border border-blue-500/30">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+          <div className="p-8 sm:p-10 md:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-600/20 to-blue-500/10 border border-blue-500/30">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-white px-4">
               Ready to Get Started?
             </h2>
-            <p className="text-slate-300 text-lg mb-8">
+            <p className="text-slate-300 text-base sm:text-lg mb-6 sm:mb-8 px-4">
               Let's discuss how our services can help transform your business with innovative IT solutions
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Link
                 to="/contact"
-                className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2"
+                className="px-6 sm:px-8 py-3 sm:py-3.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2"
               >
                 Contact Us
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
               <Link
                 to="/about"
-                className="px-8 py-3.5 bg-[#1a2942] hover:bg-[#1f2f47] border border-blue-900/50 rounded-lg font-semibold transition-all duration-300"
+                className="px-6 sm:px-8 py-3 sm:py-3.5 bg-[#1a2942] hover:bg-[#1f2f47] border border-blue-900/50 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300"
               >
                 Learn More About Us
               </Link>

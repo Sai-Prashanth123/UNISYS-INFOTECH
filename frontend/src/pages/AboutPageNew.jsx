@@ -6,7 +6,7 @@ export const AboutPageNew = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] text-white">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-16 px-4 overflow-hidden">
+      <section className="relative pt-24 sm:pt-28 md:pt-32 pb-8 sm:pb-12 md:pb-16 px-4 sm:px-6 overflow-hidden">
         {/* Animated background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-blue-500/10 to-transparent"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)]"></div>
@@ -18,22 +18,22 @@ export const AboutPageNew = () => {
           </div>
 
           {/* Main Heading */}
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-white">
             About Us
           </h1>
         </div>
       </section>
 
       {/* Main Content Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center mb-12 sm:mb-16 md:mb-20">
             {/* Left Content */}
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-blue-400">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 text-blue-400">
                 UNISYS INFOTECH's Story
               </h2>
-              <div className="space-y-4 text-slate-300 leading-relaxed">
+              <div className="space-y-3 sm:space-y-4 text-slate-300 leading-relaxed text-sm sm:text-base">
                 <p>
                   Our experienced and professional team are able to help you find the right strategic solution for your business including: reshaping hierarchies, company audits, marketing, and helping you to identify ways of streamlining workflow processes.
                 </p>
@@ -63,22 +63,22 @@ export const AboutPageNew = () => {
           </div>
 
           {/* Our Services Section */}
-          <div className="mb-20">
-            <div className="mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-blue-400">
+          <div className="mb-12 sm:mb-16 md:mb-20">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 text-blue-400">
                 Our Services
               </h2>
-              <p className="text-lg text-slate-300 leading-relaxed mb-4">
+              <p className="text-base sm:text-lg text-slate-300 leading-relaxed mb-3 sm:mb-4">
                 UNISYS INFOTECH brings a wide array of IT and business consulting skills and a long history of experience across many industries that allows us to expertly tailor our services and solutions to match your business or organizational needs. <span className="text-blue-400 font-semibold">On Time. On Budget. Exceeding Expectations.</span>
               </p>
             </div>
 
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all duration-300"
+              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300"
             >
               To Know More Contact Us
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
           </div>
         </div>

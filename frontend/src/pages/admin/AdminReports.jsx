@@ -599,33 +599,33 @@ export const AdminReports = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Monthly Reports & Analytics</h1>
-              <p className="text-slate-300">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 break-words">Monthly Reports & Analytics</h1>
+              <p className="text-sm sm:text-base text-slate-300">
                 View system reports and analytics for{' '}
                 <span className="font-semibold text-white">
                   {formatUSMonthYear(new Date(selectedYear, parseInt(selectedMonth) - 1))}
                 </span>
               </p>
               {lastUpdated && (
-                <p className="text-slate-500 text-sm mt-1">
+                <p className="text-slate-500 text-xs sm:text-sm mt-1">
                   Last updated: {formatLastUpdated()}
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
               {/* Month/Year Selector */}
-              <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-lg px-3 py-2">
-                <Calendar className="w-4 h-4 text-slate-300" />
+              <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
+                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-slate-300 flex-shrink-0" />
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent border-none text-white focus:outline-none cursor-pointer"
+                  className="bg-transparent border-none text-white text-xs sm:text-sm focus:outline-none cursor-pointer"
                 >
                   {Array.from({ length: 12 }, (_, i) => {
                     const month = String(i + 1).padStart(2, '0');
@@ -640,7 +640,7 @@ export const AdminReports = () => {
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                  className="bg-transparent border-none text-white focus:outline-none cursor-pointer"
+                  className="bg-transparent border-none text-white text-xs sm:text-sm focus:outline-none cursor-pointer"
                 >
                   {Array.from({ length: 5 }, (_, i) => {
                     const year = new Date().getFullYear() - 2 + i;
@@ -654,9 +654,9 @@ export const AdminReports = () => {
               </div>
               
               {/* Connection Status */}
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                {isConnected ? <Wifi size={16} /> : <WifiOff size={16} />}
-                <span className="text-sm font-medium">{isConnected ? 'Live' : 'Offline'}</span>
+              <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm ${isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                {isConnected ? <Wifi size={14} className="sm:w-4 sm:h-4" /> : <WifiOff size={14} className="sm:w-4 sm:h-4" />}
+                <span className="font-medium">{isConnected ? 'Live' : 'Offline'}</span>
               </div>
               
               {/* Refresh Button */}
@@ -666,33 +666,33 @@ export const AdminReports = () => {
                   fetchTimecards();
                 }}
                 disabled={refreshing || loading}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-semibold px-4 py-3 rounded-xl transition-all duration-300"
+                className="flex items-center gap-1.5 sm:gap-2 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 active:scale-95 min-h-[44px]"
                 title="Refresh data"
               >
-                <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
-                {refreshing ? 'Refreshing...' : 'Refresh'}
+                <RefreshCw size={16} className={`sm:w-5 sm:h-5 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
               </button>
             </div>
           </div>
           
           {/* Tabs */}
-          <div className="flex gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 sm:mb-6">
             <button
               onClick={() => setActiveTab('employees')}
-              className={`px-6 py-3 rounded-lg font-semibold transition ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition active:scale-95 min-h-[44px] ${
                 activeTab === 'employees'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-white/10 text-slate-300 hover:bg-white/15'
+                  : 'bg-white/10 text-slate-300 hover:bg-white/15 active:bg-white/20'
               }`}
             >
               Employee Timecards
             </button>
             <button
               onClick={() => setActiveTab('employers')}
-              className={`px-6 py-3 rounded-lg font-semibold transition ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition active:scale-95 min-h-[44px] ${
                 activeTab === 'employers'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-white/10 text-slate-300 hover:bg-white/15'
+                  : 'bg-white/10 text-slate-300 hover:bg-white/15 active:bg-white/20'
               }`}
             >
               Employer Timecards
@@ -703,50 +703,50 @@ export const AdminReports = () => {
           {loading ? (
             <ExportSkeleton />
           ) : (
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <FileSpreadsheet className="w-6 h-6 text-green-400" />
-                <h2 className="text-xl font-bold text-white">Export Reports - {activeTab === 'employees' ? 'Employees' : 'Employers'}</h2>
+            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <FileSpreadsheet className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0" />
+                <h2 className="text-lg sm:text-xl font-bold text-white break-words">Export Reports - {activeTab === 'employees' ? 'Employees' : 'Employers'}</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <button 
                   onClick={exportEmployeeReport}
                   disabled={exporting}
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-h-[44px]"
                 >
-                  {exporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-                  {exporting ? 'Exporting...' : `${activeTab === 'employers' ? 'Employer' : 'Employee'} Details`}
+                  {exporting ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Download className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  <span className="text-xs sm:text-sm">{exporting ? 'Exporting...' : `${activeTab === 'employers' ? 'Employer' : 'Employee'} Details`}</span>
                 </button>
                 
                 <button 
                   onClick={exportEmployeeSummary}
                   disabled={exporting}
-                  className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-h-[44px]"
                 >
-                  {exporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Users className="w-5 h-5" />}
-                  {exporting ? 'Exporting...' : `${activeTab === 'employers' ? 'Employer' : 'Employee'} Summary`}
+                  {exporting ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Users className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  <span className="text-xs sm:text-sm">{exporting ? 'Exporting...' : `${activeTab === 'employers' ? 'Employer' : 'Employee'} Summary`}</span>
                 </button>
                 
                 <button 
                   onClick={exportClientReport}
                   disabled={exporting}
-                  className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-h-[44px]"
                 >
-                  {exporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <BarChart3 className="w-5 h-5" />}
-                  {exporting ? 'Exporting...' : 'Client Report'}
+                  {exporting ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  <span className="text-xs sm:text-sm">{exporting ? 'Exporting...' : 'Client Report'}</span>
                 </button>
                 
                 <button 
                   onClick={exportMonthlySummary}
                   disabled={exporting}
-                  className="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-h-[44px]"
                 >
-                  {exporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Calendar className="w-5 h-5" />}
-                  {exporting ? 'Exporting...' : 'Monthly Summary'}
+                  {exporting ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  <span className="text-xs sm:text-sm">{exporting ? 'Exporting...' : 'Monthly Summary'}</span>
                 </button>
               </div>
-              <p className="text-slate-400 text-sm mt-4">
-                <FileText className="w-4 h-4 inline mr-1" />
+              <p className="text-slate-400 text-xs sm:text-sm mt-3 sm:mt-4 leading-relaxed">
+                <FileText className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
                 Export comprehensive monthly reports for <span className="font-semibold text-white">{new Date(selectedYear, parseInt(selectedMonth) - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}</span> including {activeTab === 'employers' ? 'employer' : 'employee'} hours, projects, managers, and detailed analytics in CSV format.
               </p>
             </div>
@@ -777,29 +777,29 @@ export const AdminReports = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-indigo-600/20 to-indigo-800/20 backdrop-blur-sm border border-indigo-500/30 rounded-2xl p-6 shadow-xl mt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-slate-400 text-sm font-medium mb-1">
+            <div className="bg-gradient-to-br from-indigo-600/20 to-indigo-800/20 backdrop-blur-sm border border-indigo-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl mt-4 sm:mt-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-slate-400 text-xs sm:text-sm font-medium mb-2">
                     {getRoleSpecificStats.roleName} Overview
                   </h3>
-                  <div className="flex items-baseline gap-4 mt-2">
+                  <div className="flex flex-wrap items-baseline gap-3 sm:gap-4 mt-2">
                     <div>
-                      <p className="text-3xl font-bold text-white">{getRoleSpecificStats.totalUsers}</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white">{getRoleSpecificStats.totalUsers}</p>
                       <p className="text-slate-400 text-xs mt-1">Total {getRoleSpecificStats.roleName}</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-green-400">{getRoleSpecificStats.activeUsers}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-green-400">{getRoleSpecificStats.activeUsers}</p>
                       <p className="text-slate-400 text-xs mt-1">Active</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-slate-400">{getRoleSpecificStats.totalUsers - getRoleSpecificStats.activeUsers}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-slate-400">{getRoleSpecificStats.totalUsers - getRoleSpecificStats.activeUsers}</p>
                       <p className="text-slate-400 text-xs mt-1">Inactive</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-4 bg-indigo-500/20 rounded-xl">
-                  <Users className="w-12 h-12 text-indigo-400" />
+                <div className="p-3 sm:p-4 bg-indigo-500/20 rounded-xl flex-shrink-0">
+                  <Users className="w-8 h-8 sm:w-12 sm:h-12 text-indigo-400" />
                 </div>
               </div>
             </div>
@@ -824,53 +824,53 @@ export const AdminReports = () => {
         ) : (
           <div className="space-y-8">
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-500/30 rounded-2xl p-6 shadow-xl hover:scale-105 transition-transform duration-300">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-blue-500/20 rounded-xl">
-                    <Clock className="w-8 h-8 text-blue-400" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl hover:scale-105 transition-transform duration-300">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="p-2 sm:p-3 bg-blue-500/20 rounded-xl">
+                    <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-blue-400" />
                   </div>
-                  <TrendingUp className="w-6 h-6 text-green-400" />
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
                 </div>
-                <h3 className="text-slate-400 text-sm font-medium mb-1">Total Hours</h3>
-                <p className="text-4xl font-bold text-white">{totalHours.toFixed(0)}</p>
-                <p className="text-slate-400 text-sm mt-2">Across all projects</p>
+                <h3 className="text-slate-400 text-xs sm:text-sm font-medium mb-1">Total Hours</h3>
+                <p className="text-3xl sm:text-4xl font-bold text-white">{totalHours.toFixed(0)}</p>
+                <p className="text-slate-400 text-xs sm:text-sm mt-2">Across all projects</p>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-6 shadow-xl hover:scale-105 transition-transform duration-300">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-purple-500/20 rounded-xl">
-                    <Calendar className="w-8 h-8 text-purple-400" />
+              <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl hover:scale-105 transition-transform duration-300">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="p-2 sm:p-3 bg-purple-500/20 rounded-xl">
+                    <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
                   </div>
-                  <TrendingUp className="w-6 h-6 text-green-400" />
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
                 </div>
-                <h3 className="text-slate-400 text-sm font-medium mb-1">Total Entries</h3>
-                <p className="text-4xl font-bold text-white">{totalEntries}</p>
-                <p className="text-slate-400 text-sm mt-2">Time entries logged</p>
+                <h3 className="text-slate-400 text-xs sm:text-sm font-medium mb-1">Total Entries</h3>
+                <p className="text-3xl sm:text-4xl font-bold text-white">{totalEntries}</p>
+                <p className="text-slate-400 text-xs sm:text-sm mt-2">Time entries logged</p>
               </div>
 
-              <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-800/20 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-6 shadow-xl hover:scale-105 transition-transform duration-300">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-emerald-500/20 rounded-xl">
-                    <BarChart3 className="w-8 h-8 text-emerald-400" />
+              <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-800/20 backdrop-blur-sm border border-emerald-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl hover:scale-105 transition-transform duration-300">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="p-2 sm:p-3 bg-emerald-500/20 rounded-xl">
+                    <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
                   </div>
-                  <TrendingUp className="w-6 h-6 text-green-400" />
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
                 </div>
-                <h3 className="text-slate-400 text-sm font-medium mb-1">Total Amount</h3>
-                <p className="text-4xl font-bold text-white">${totalAmount.toFixed(0)}</p>
-                <p className="text-slate-400 text-sm mt-2">Hourly Pay × Hours</p>
+                <h3 className="text-slate-400 text-xs sm:text-sm font-medium mb-1">Total Amount</h3>
+                <p className="text-3xl sm:text-4xl font-bold text-white">${totalAmount.toFixed(0)}</p>
+                <p className="text-slate-400 text-xs sm:text-sm mt-2">Hourly Pay × Hours</p>
               </div>
 
-              <div className="bg-gradient-to-br from-orange-600/20 to-orange-800/20 backdrop-blur-sm border border-orange-500/30 rounded-2xl p-6 shadow-xl hover:scale-105 transition-transform duration-300">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-orange-500/20 rounded-xl">
-                    <BarChart3 className="w-8 h-8 text-orange-400" />
+              <div className="bg-gradient-to-br from-orange-600/20 to-orange-800/20 backdrop-blur-sm border border-orange-500/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-xl hover:scale-105 transition-transform duration-300">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="p-2 sm:p-3 bg-orange-500/20 rounded-xl">
+                    <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400" />
                   </div>
-                  <TrendingUp className="w-6 h-6 text-green-400" />
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
                 </div>
-                <h3 className="text-slate-400 text-sm font-medium mb-1">Avg Hours/Entry</h3>
-                <p className="text-4xl font-bold text-white">{avgHoursPerEntry.toFixed(1)}</p>
-                <p className="text-slate-400 text-sm mt-2">Per time entry</p>
+                <h3 className="text-slate-400 text-xs sm:text-sm font-medium mb-1">Avg Hours/Entry</h3>
+                <p className="text-3xl sm:text-4xl font-bold text-white">{avgHoursPerEntry.toFixed(1)}</p>
+                <p className="text-slate-400 text-xs sm:text-sm mt-2">Per time entry</p>
               </div>
             </div>
 

@@ -216,52 +216,54 @@ export const ClientLogoManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Client Logo Management</h1>
-            <p className="text-slate-300">Manage client logos displayed on the homepage carousel</p>
-            <p className="text-slate-400 text-sm mt-1">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 break-words">Client Logo Management</h1>
+            <p className="text-sm sm:text-base text-slate-300">Manage client logos displayed on the homepage carousel</p>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               {logos.length} logo{logos.length !== 1 ? 's' : ''} • {logos.filter(l => l.isActive).length} active
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={fetchLogos}
               disabled={loading}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-3 rounded-xl transition-all duration-300"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 active:scale-95 min-h-[44px]"
               title="Refresh logos"
             >
-              <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+              <RefreshCw size={16} className={`sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
             </button>
             <button
               onClick={() => setShowAddForm(!showAddForm)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105"
+              className="flex items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 min-h-[44px] flex-1 sm:flex-initial"
             >
-              {showAddForm ? <X size={20} /> : <Plus size={20} />}
-              {showAddForm ? 'Cancel' : 'Add New Logo'}
+              {showAddForm ? <X size={18} className="sm:w-5 sm:h-5" /> : <Plus size={18} className="sm:w-5 sm:h-5" />}
+              <span className="hidden sm:inline">{showAddForm ? 'Cancel' : 'Add New Logo'}</span>
+              <span className="sm:hidden">{showAddForm ? 'Cancel' : 'Add Logo'}</span>
             </button>
           </div>
         </div>
 
         {/* Add/Edit Form */}
         {showAddForm && (
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4 text-white">
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">
               {editingId ? 'Edit Client Logo' : 'Add New Client Logo'}
             </h2>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2 text-slate-200">Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                />
+                  <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 text-slate-200">Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[44px]"
+                  />
               </div>
 
               <div>
@@ -390,20 +392,20 @@ export const ClientLogoManagement = () => {
                 <label className="text-sm font-medium text-slate-200">Active (shown on homepage)</label>
               </div>
 
-              <div className="md:col-span-2 flex gap-4">
+              <div className="md:col-span-2 flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button 
                   type="submit" 
                   disabled={saving}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 disabled:hover:scale-100 flex items-center gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white text-sm sm:text-base font-semibold px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 disabled:hover:scale-100 flex items-center justify-center gap-2 min-h-[44px]"
                 >
                   {saving ? (
                     <>
-                      <RefreshCw size={20} className="animate-spin" />
+                      <RefreshCw size={18} className="sm:w-5 sm:h-5 animate-spin" />
                       Saving...
                     </>
                   ) : (
                     <>
-                      <Save size={20} />
+                      <Save size={18} className="sm:w-5 sm:h-5" />
                       {editingId ? 'Update' : 'Create'} Logo
                     </>
                   )}
@@ -412,9 +414,9 @@ export const ClientLogoManagement = () => {
                   type="button" 
                   onClick={resetForm} 
                   disabled={saving}
-                  className="bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2"
+                  className="bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white text-sm sm:text-base font-semibold px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 min-h-[44px]"
                 >
-                  <X size={20} />
+                  <X size={18} className="sm:w-5 sm:h-5" />
                   Cancel
                 </button>
               </div>
@@ -423,57 +425,57 @@ export const ClientLogoManagement = () => {
         )}
 
         {/* Logos Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {logos.map((logo) => (
             <div
               key={logo._id}
-              className={`relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 ${deletingId === logo._id ? 'opacity-60' : ''}`}
+              className={`relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:bg-white/15 transition-all duration-300 ${deletingId === logo._id ? 'opacity-60' : ''}`}
             >
               {/* Deleting Overlay */}
               {deletingId === logo._id && (
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl sm:rounded-2xl flex items-center justify-center z-10">
                   <div className="flex flex-col items-center gap-2">
-                    <Loader2 size={32} className="text-red-400 animate-spin" />
-                    <span className="text-white text-sm font-medium">Deleting...</span>
+                    <Loader2 size={28} className="sm:w-8 sm:h-8 text-red-400 animate-spin" />
+                    <span className="text-white text-xs sm:text-sm font-medium">Deleting...</span>
                   </div>
                 </div>
               )}
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-2">
+              <div className="flex justify-between items-start mb-3 sm:mb-4">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   {logo.isActive ? (
-                    <CheckCircle size={20} className="text-green-400" />
+                    <CheckCircle size={18} className="sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
                   ) : (
-                    <XCircle size={20} className="text-red-400" />
+                    <XCircle size={18} className="sm:w-5 sm:h-5 text-red-400 flex-shrink-0" />
                   )}
                   <span className="text-xs font-semibold text-white">
                     {logo.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                   <button
                     onClick={() => handleEdit(logo)}
                     disabled={deletingId === logo._id}
-                    className="p-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg transition-colors"
+                    className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg transition-colors active:scale-95 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                     title="Edit Logo"
                   >
-                    <Edit2 size={18} className="text-white" />
+                    <Edit2 size={16} className="sm:w-[18px] sm:h-[18px] text-white" />
                   </button>
                   <button
                     onClick={() => handleDelete(logo._id)}
                     disabled={deletingId !== null}
-                    className="p-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                    className="p-1.5 sm:p-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors active:scale-95 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                     title="Delete Logo"
                   >
                     {deletingId === logo._id ? (
-                      <Loader2 size={18} className="text-white animate-spin" />
+                      <Loader2 size={16} className="sm:w-[18px] sm:h-[18px] text-white animate-spin" />
                     ) : (
-                      <Trash2 size={18} className="text-white" />
+                      <Trash2 size={16} className="sm:w-[18px] sm:h-[18px] text-white" />
                     )}
                   </button>
                 </div>
               </div>
 
-              <div className="mb-4 flex items-center justify-center h-20 bg-white/5 rounded-lg p-2">
+              <div className="mb-3 sm:mb-4 flex items-center justify-center h-16 sm:h-20 bg-white/5 rounded-lg p-2">
                 <img
                   src={logo.logoUrl}
                   alt={logo.name}
@@ -484,10 +486,10 @@ export const ClientLogoManagement = () => {
                 />
               </div>
 
-              <h3 className="text-xl font-bold mb-2 text-white">{logo.name}</h3>
-              <p className="text-sm text-blue-400 mb-2">{logo.industry}</p>
+              <h3 className="text-lg sm:text-xl font-bold mb-1.5 sm:mb-2 text-white truncate">{logo.name}</h3>
+              <p className="text-xs sm:text-sm text-blue-400 mb-1.5 sm:mb-2 truncate">{logo.industry}</p>
               {logo.description && (
-                <p className="text-sm mb-2 text-slate-200">
+                <p className="text-xs sm:text-sm mb-1.5 sm:mb-2 text-slate-200 line-clamp-2">
                   {logo.description}
                 </p>
               )}

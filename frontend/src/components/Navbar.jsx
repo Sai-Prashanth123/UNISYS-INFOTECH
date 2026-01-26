@@ -43,14 +43,14 @@ export const Navbar = () => {
       {/* White Glass morphism background */}
       <div className="absolute inset-0 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-lg transition-all duration-300"></div>
       
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="relative max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2.5 group relative z-10">
             <img 
               src="/logo.png" 
               alt="UNISYS INFOTECH" 
-              className="h-24 w-auto group-hover:scale-105 transition-transform duration-300"
+              className="h-12 sm:h-16 md:h-20 lg:h-24 w-auto group-hover:scale-105 transition-transform duration-300"
             />
           </Link>
 
@@ -85,7 +85,7 @@ export const Navbar = () => {
                     user.role === 'employee' ? '/employee/timecards' : 
                     '/user/dashboard'
                   } 
-                  className="px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-semibold rounded-lg transition-all duration-300 shadow-lg shadow-blue-500/30"
+                  className="px-3 sm:px-5 py-1.5 sm:py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white text-xs sm:text-sm font-semibold rounded-lg transition-all duration-300 shadow-lg shadow-blue-500/30"
                 >
                   Dashboard
                 </Link>
@@ -97,14 +97,14 @@ export const Navbar = () => {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowLoginDropdown(!showLoginDropdown)}
-                  className="px-6 py-2.5 bg-slate-900/90 backdrop-blur-lg hover:bg-slate-900 text-white text-sm font-bold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl border border-white/10"
+                  className="px-4 sm:px-6 py-2 sm:py-2.5 bg-slate-900/90 backdrop-blur-lg hover:bg-slate-900 text-white text-xs sm:text-sm font-bold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl border border-white/10"
                 >
                   Login
                 </button>
                 
                 {/* Apple-style Dropdown Menu */}
                 {showLoginDropdown && (
-                  <div className="absolute right-0 mt-3 w-64 animate-fade-in">
+                  <div className="absolute right-0 mt-3 w-56 sm:w-64 animate-fade-in">
                     <div className="bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-slate-200/60 overflow-hidden">
                       {/* Header */}
                       <div className="px-4 py-3 bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-200/60">
@@ -145,20 +145,40 @@ export const Navbar = () => {
 
         {/* Mobile menu */}
         {isOpen && (
-          <div className="md:hidden pb-4 pt-4 space-y-1 border-t border-slate-200 bg-white">
-            <Link to="/" className="block px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200">
+          <div className="md:hidden pb-4 pt-4 space-y-1 border-t border-slate-200 bg-white animate-slide-down">
+            <Link 
+              to="/" 
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200 active:bg-slate-200"
+            >
               Home
             </Link>
-            <Link to="/about" className="block px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200">
+            <Link 
+              to="/about" 
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200 active:bg-slate-200"
+            >
               About
             </Link>
-            <Link to="/services" className="block px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200">
+            <Link 
+              to="/services" 
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200 active:bg-slate-200"
+            >
               Services
             </Link>
-            <Link to="/careers" className="block px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200">
+            <Link 
+              to="/careers" 
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200 active:bg-slate-200"
+            >
               Careers
             </Link>
-            <Link to="/contact" className="block px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200">
+            <Link 
+              to="/contact" 
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-3 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200 active:bg-slate-200"
+            >
               Contact
             </Link>
             {user && (

@@ -460,7 +460,7 @@ export const AdminDashboard = () => {
   };
 
   // Stat card component with update animation
-  const StatCard = ({ title, value, subtitle, icon: Icon, color, highlightType }) => {
+  const StatCard = ({ title, value, subtitle, icon: Icon, color, highlightType, onClick }) => {
     // Determine if this card should be highlighted based on recent update
     const isHighlighted = realtimeUpdate && (
       (highlightType === 'users' && realtimeUpdate === 'Users') ||
@@ -482,48 +482,54 @@ export const AdminDashboard = () => {
     
     const colors = colorClasses[color] || colorClasses.blue;
 
+    const Component = onClick ? 'button' : 'div';
+    const componentProps = onClick ? { onClick, type: 'button' } : {};
+
     return (
-      <div className={`bg-white/10 backdrop-blur-xl border rounded-2xl p-6 flex items-start justify-between transition-all duration-500 hover:scale-105 ${
-        isHighlighted 
-          ? `${colors.border} bg-gradient-to-br from-${color}-500/30 to-${color}-600/10 ring-2 ${colors.ring}` 
-          : 'border-white/20 hover:bg-white/15'
-      }`}>
-        <div>
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-slate-200">{title}</p>
+      <Component 
+        {...componentProps}
+        className={`bg-white/10 backdrop-blur-xl border rounded-xl sm:rounded-2xl p-4 sm:p-6 flex items-start justify-between transition-all duration-500 hover:scale-105 ${onClick ? 'cursor-pointer active:scale-95' : ''} ${
+          isHighlighted 
+            ? `${colors.border} bg-gradient-to-br from-${color}-500/30 to-${color}-600/10 ring-2 ${colors.ring}` 
+            : 'border-white/20 hover:bg-white/15'
+        }`}
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs sm:text-sm font-medium text-slate-200 truncate">{title}</p>
             {isHighlighted && (
-              <span className="flex items-center gap-1 text-xs text-green-400 animate-pulse">
-                <CheckCircle size={12} />
-                Updated
+              <span className="flex items-center gap-1 text-xs text-green-400 animate-pulse flex-shrink-0">
+                <CheckCircle size={10} className="sm:w-3 sm:h-3" />
+                <span className="hidden sm:inline">Updated</span>
               </span>
             )}
           </div>
-          <p className={`text-4xl font-bold mt-2 transition-all duration-500 ${
+          <p className={`text-2xl sm:text-3xl md:text-4xl font-bold mt-2 transition-all duration-500 truncate ${
             isHighlighted ? `${colors.text} scale-110 transform` : 'text-white'
           }`}>
             {value}
           </p>
-          <p className="text-xs text-slate-300 mt-1">{subtitle}</p>
+          <p className="text-xs text-slate-300 mt-1 truncate">{subtitle}</p>
         </div>
-        <div className={`w-12 h-12 rounded-full ${colors.bg} flex items-center justify-center transition-all duration-300 ${
+        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${colors.bg} flex items-center justify-center transition-all duration-300 flex-shrink-0 ml-2 ${
           isHighlighted ? 'animate-bounce scale-110' : ''
         }`}>
-          <Icon className={`w-6 h-6 ${colors.text}`} />
+          <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${colors.text}`} />
         </div>
-      </div>
+      </Component>
     );
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Header with refresh button and realtime status */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-white">Admin Dashboard</h1>
-            <div className="flex items-center gap-4 mt-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white break-words">Admin Dashboard</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2">
               {lastUpdated && (
-                <p className="text-sm text-slate-400">
+                <p className="text-xs sm:text-sm text-slate-400">
                   Last updated: {lastUpdated.toLocaleTimeString()}
                 </p>
               )}
@@ -548,34 +554,34 @@ export const AdminDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             {/* Real-time update indicator */}
             {realtimeUpdate && (
-              <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500/20 to-blue-500/20 text-green-400 rounded-xl text-sm border border-green-500/30 shadow-lg animate-pulse">
-                <CheckCircle size={16} className="animate-bounce" />
+              <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-green-500/20 to-blue-500/20 text-green-400 rounded-xl text-xs sm:text-sm border border-green-500/30 shadow-lg animate-pulse">
+                <CheckCircle size={14} className="sm:w-4 sm:h-4 animate-bounce" />
                 <span className="font-medium">{realtimeUpdate} updated!</span>
               </div>
             )}
             {/* Refreshing indicator */}
             {refreshing && !realtimeUpdate && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm">
-                <RefreshCw size={14} className="animate-spin" />
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-xs sm:text-sm">
+                <RefreshCw size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" />
                 <span>Syncing...</span>
               </div>
             )}
             <button
               onClick={handleRefresh}
               disabled={refreshing || loading}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white rounded-lg transition-all hover:scale-105"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white text-xs sm:text-sm rounded-lg transition-all hover:scale-105 active:scale-95 min-h-[44px]"
             >
-              <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+              <RefreshCw size={16} className={`sm:w-[18px] sm:h-[18px] ${refreshing ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
             </button>
           </div>
         </div>
 
         {/* Stats Grid with Skeleton Loading */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {loading ? (
             // Show 6 skeleton cards while loading
             <>
@@ -589,23 +595,71 @@ export const AdminDashboard = () => {
           ) : (
             // Show actual stat cards with highlight types for realtime updates
             <>
-              <StatCard title="Total Users" value={stats.totalUsers} subtitle="All system users" icon={Users} color="blue" highlightType="users" />
-              <StatCard title="Total Clients" value={stats.totalClients} subtitle="Active clients" icon={Briefcase} color="green" highlightType="clients" />
-              <StatCard title="Hours Tracked" value={stats.totalHours} subtitle="This month" icon={Clock} color="purple" highlightType="timecards" />
-              <StatCard title="Active Employees" value={stats.activeEmployees} subtitle="Currently active" icon={UserCheck} color="cyan" highlightType="users" />
-              <StatCard title="Job Postings" value={stats.jobPostings} subtitle="Open positions" icon={Briefcase} color="orange" highlightType="jobs" />
-              <StatCard title="Contact Messages" value={stats.contactMessages} subtitle="Unread messages" icon={Mail} color="pink" highlightType="messages" />
+              <StatCard 
+                title="Total Users" 
+                value={stats.totalUsers} 
+                subtitle="All system users" 
+                icon={Users} 
+                color="blue" 
+                highlightType="users"
+                onClick={() => navigate('/admin/users')}
+              />
+              <StatCard 
+                title="Total Clients" 
+                value={stats.totalClients} 
+                subtitle="Active clients" 
+                icon={Briefcase} 
+                color="green" 
+                highlightType="clients"
+                onClick={() => navigate('/admin/clients')}
+              />
+              <StatCard 
+                title="Hours Tracked" 
+                value={stats.totalHours} 
+                subtitle="This month" 
+                icon={Clock} 
+                color="purple" 
+                highlightType="timecards"
+                onClick={() => navigate('/admin/timecards')}
+              />
+              <StatCard 
+                title="Active Employees" 
+                value={stats.activeEmployees} 
+                subtitle="Currently active" 
+                icon={UserCheck} 
+                color="cyan" 
+                highlightType="users"
+                onClick={() => navigate('/admin/users?filter=employees')}
+              />
+              <StatCard 
+                title="Job Postings" 
+                value={stats.jobPostings} 
+                subtitle="Open positions" 
+                icon={Briefcase} 
+                color="orange" 
+                highlightType="jobs"
+                onClick={() => navigate('/admin/jobs')}
+              />
+              <StatCard 
+                title="Contact Messages" 
+                value={stats.contactMessages} 
+                subtitle="Unread messages" 
+                icon={Mail} 
+                color="pink" 
+                highlightType="messages"
+                onClick={() => navigate('/admin/contact-messages')}
+              />
             </>
           )}
         </div>
 
         {/* Quick Actions */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-white">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-white">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <button 
               onClick={() => navigate('/admin/users')}
-              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-4 hover:bg-white/15 transition-all duration-300 hover:scale-105 text-left cursor-pointer"
+              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-4 sm:p-5 hover:bg-white/15 transition-all duration-300 hover:scale-105 active:scale-95 text-left cursor-pointer min-h-[100px]"
             >
               <Users className="w-8 h-8 text-blue-400 mb-2" />
               <p className="font-semibold text-white">Manage Users</p>

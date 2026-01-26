@@ -397,13 +397,13 @@ export const JobManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Job Management</h1>
-            <div className="flex items-center gap-3">
-              <p className="text-slate-300">Manage job postings and applications</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 break-words">Job Management</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <p className="text-sm sm:text-base text-slate-300">Manage job postings and applications</p>
               {/* Realtime indicator */}
               <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-full ${
                 realtimeConnected 
@@ -425,62 +425,63 @@ export const JobManagement = () => {
               </div>
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300"
+              className="bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-300 active:scale-95 min-h-[44px] flex-1 sm:flex-initial"
             >
-              <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
-              Refresh
+              <RefreshCw size={16} className={`sm:w-[18px] sm:h-[18px] ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
             </button>
             <button
               onClick={() => setShowModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-lg hover:scale-105"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base px-4 sm:px-6 py-2.5 sm:py-2.5 rounded-xl font-semibold flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 min-h-[44px] flex-1 sm:flex-initial"
             >
-              <Plus size={20} />
-              Add New Job
+              <Plus size={18} className="sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Add New Job</span>
+              <span className="sm:hidden">Add Job</span>
             </button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-4">
-            <p className="text-slate-300 text-sm">Total Jobs</p>
-            <p className="text-2xl font-bold text-white">{jobs.length}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-3 sm:p-4">
+            <p className="text-slate-300 text-xs sm:text-sm">Total Jobs</p>
+            <p className="text-xl sm:text-2xl font-bold text-white truncate">{jobs.length}</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-4">
-            <p className="text-slate-300 text-sm">Active Jobs</p>
-            <p className="text-2xl font-bold text-green-400">{jobs.filter(j => j.isActive).length}</p>
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-3 sm:p-4">
+            <p className="text-slate-300 text-xs sm:text-sm">Active Jobs</p>
+            <p className="text-xl sm:text-2xl font-bold text-green-400 truncate">{jobs.filter(j => j.isActive).length}</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-4">
-            <p className="text-slate-300 text-sm">Total Applications</p>
-            <p className="text-2xl font-bold text-blue-400">{applications.length}</p>
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-3 sm:p-4">
+            <p className="text-slate-300 text-xs sm:text-sm">Total Applications</p>
+            <p className="text-xl sm:text-2xl font-bold text-blue-400 truncate">{applications.length}</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-4">
-            <p className="text-slate-300 text-sm">New Applications</p>
-            <p className="text-2xl font-bold text-yellow-400">{applications.filter(a => a.status === 'new').length}</p>
+          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-3 sm:p-4">
+            <p className="text-slate-300 text-xs sm:text-sm">New Applications</p>
+            <p className="text-xl sm:text-2xl font-bold text-yellow-400 truncate">{applications.filter(a => a.status === 'new').length}</p>
           </div>
         </div>
 
         {/* Jobs Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {jobs.map((job) => (
             <div
               key={job._id}
-              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300"
+              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:bg-white/15 transition-all duration-300"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3 flex-wrap">
-                    <h3 className="text-xl font-bold text-white">{job.title}</h3>
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                    <h3 className="text-lg sm:text-xl font-bold text-white truncate flex-1 min-w-0">{job.title}</h3>
                     {job.jobCode && (
-                      <span className="px-2 py-0.5 rounded text-xs font-mono bg-blue-500/20 text-blue-200">
+                      <span className="px-2 py-0.5 rounded text-xs font-mono bg-blue-500/20 text-blue-200 flex-shrink-0">
                         {job.jobCode}
                       </span>
                     )}
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
                       job.isActive 
                         ? 'bg-green-500/20 text-green-400' 
                         : 'bg-red-500/20 text-red-400'
@@ -488,74 +489,74 @@ export const JobManagement = () => {
                       {job.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-3 text-sm text-slate-300">
-                    <span className="flex items-center gap-1">
-                      <MapPin size={14} />
-                      {job.location}
+                  <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-slate-300">
+                    <span className="flex items-center gap-1 truncate">
+                      <MapPin size={12} className="sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <span className="truncate">{job.location}</span>
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Briefcase size={14} />
-                      {job.department}
+                    <span className="flex items-center gap-1 truncate">
+                      <Briefcase size={12} className="sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <span className="truncate">{job.department}</span>
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Clock size={14} />
-                      {job.type}
+                    <span className="flex items-center gap-1 truncate">
+                      <Clock size={12} className="sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                      <span className="truncate">{job.type}</span>
                     </span>
                   </div>
                 </div>
               </div>
 
-              <p className="mb-4 text-slate-200 text-sm line-clamp-2">
+              <p className="mb-3 sm:mb-4 text-slate-200 text-xs sm:text-sm line-clamp-2">
                 {job.description}
               </p>
 
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                 {job.skills?.slice(0, 4).map((skill, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-1 rounded-full text-xs bg-blue-500/20 text-blue-200"
+                    className="px-2 py-0.5 sm:py-1 rounded-full text-xs bg-blue-500/20 text-blue-200 truncate max-w-[120px]"
                   >
                     {skill}
                   </span>
                 ))}
                 {job.skills?.length > 4 && (
-                  <span className="px-2 py-1 rounded-full text-xs text-slate-400">
+                  <span className="px-2 py-0.5 sm:py-1 rounded-full text-xs text-slate-400">
                     +{job.skills.length - 4} more
                   </span>
                 )}
               </div>
 
-              <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                <div className="text-sm text-slate-400">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 pt-3 sm:pt-4 border-t border-white/10">
+                <div className="text-xs sm:text-sm text-slate-400 truncate w-full sm:w-auto">
                   {job.yearsOfExperience ? `${job.yearsOfExperience} years exp` : job.experience}
                   {job.salary && ` • ${job.salary}`}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2 w-full sm:w-auto justify-end">
                   <button
                     onClick={() => viewApplications(job)}
-                    className="p-2.5 rounded-lg transition-all duration-300 bg-blue-600 hover:bg-blue-700 text-white relative hover:scale-105 shadow-lg"
+                    className="p-2 sm:p-2.5 rounded-lg transition-all duration-300 bg-blue-600 hover:bg-blue-700 text-white relative hover:scale-105 active:scale-95 shadow-lg min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                     title="View Applications"
                   >
-                    <Users size={18} />
+                    <Users size={16} className="sm:w-[18px] sm:h-[18px]" />
                     {getApplicationCount(job._id) > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-md">
+                      <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-500 text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-semibold shadow-md">
                         {getApplicationCount(job._id)}
                       </span>
                     )}
                   </button>
                   <button
                     onClick={() => handleEdit(job)}
-                    className="p-2.5 rounded-lg transition-all duration-300 bg-white/10 hover:bg-white/20 text-white hover:scale-105"
+                    className="p-2 sm:p-2.5 rounded-lg transition-all duration-300 bg-white/10 hover:bg-white/20 text-white hover:scale-105 active:scale-95 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                     title="Edit"
                   >
-                    <Edit2 size={18} />
+                    <Edit2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                   </button>
                   <button
                     onClick={() => handleDelete(job._id)}
-                    className="p-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 hover:scale-105"
+                    className="p-2 sm:p-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                     title="Delete"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                   </button>
                 </div>
               </div>
@@ -574,22 +575,22 @@ export const JobManagement = () => {
 
       {/* Add/Edit Job Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-gradient-to-br from-[#1a2942] to-[#0f1d35] border border-white/20 rounded-2xl p-6 max-w-3xl w-full my-8 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">{editingJob ? 'Edit Job' : 'Add New Job'}</h2>
-              <button onClick={closeModal} className="p-2 rounded-lg hover:bg-white/10 text-white">
-                <X size={24} />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-gradient-to-br from-[#1a2942] to-[#0f1d35] border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-3xl w-full my-4 sm:my-8 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-white break-words">{editingJob ? 'Edit Job' : 'Add New Job'}</h2>
+              <button onClick={closeModal} className="p-1.5 sm:p-2 rounded-lg hover:bg-white/10 text-white flex-shrink-0">
+                <X size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {/* Basic Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b border-white/20 pb-2 text-white">Basic Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3 sm:space-y-4">
+                <h3 className="text-base sm:text-lg font-semibold border-b border-white/20 pb-2 text-white">Basic Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium mb-2 text-white">Job Title *</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 text-white">Job Title *</label>
                     <input
                       type="text"
                       name="title"
@@ -597,7 +598,7 @@ export const JobManagement = () => {
                       onChange={handleInputChange}
                       required
                       placeholder="e.g., Senior Software Engineer"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[44px]"
                     />
                   </div>
 
@@ -610,7 +611,7 @@ export const JobManagement = () => {
                       onChange={handleInputChange}
                       required
                       placeholder="e.g., Engineering"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[44px]"
                     />
                   </div>
 
@@ -623,7 +624,7 @@ export const JobManagement = () => {
                       onChange={handleInputChange}
                       required
                       placeholder="e.g., Remote, New York"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[44px]"
                     />
                   </div>
 
@@ -653,7 +654,7 @@ export const JobManagement = () => {
                       onChange={handleInputChange}
                       min="0"
                       placeholder="e.g., 3"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[44px]"
                     />
                   </div>
 
@@ -665,7 +666,7 @@ export const JobManagement = () => {
                       value={formData.salary}
                       onChange={handleInputChange}
                       placeholder="e.g., $80,000 - $120,000"
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[44px]"
                     />
                   </div>
 
@@ -809,14 +810,14 @@ export const JobManagement = () => {
               <div className="flex gap-4 pt-4 border-t border-white/20">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:scale-105"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold transition-all shadow-lg hover:scale-105 active:scale-95 min-h-[44px]"
                 >
                   {editingJob ? 'Update Job' : 'Create Job'}
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-6 py-3 rounded-xl font-semibold bg-white/10 hover:bg-white/20 text-white transition-all"
+                  className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95 min-h-[44px]"
                 >
                   Cancel
                 </button>
@@ -828,40 +829,40 @@ export const JobManagement = () => {
 
       {/* Applications Modal */}
       {showApplicationsModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-gradient-to-br from-[#1a2942] to-[#0f1d35] border border-white/20 rounded-2xl p-6 max-w-6xl w-full my-8 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white">Applications</h2>
-                <p className="text-blue-400">{selectedJobTitle}</p>
-                <p className="text-slate-400 text-sm">{selectedJobApplications.length} applicants</p>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-gradient-to-br from-[#1a2942] to-[#0f1d35] border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 max-w-6xl w-full my-4 sm:my-8 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex justify-between items-start gap-4 mb-4 sm:mb-6">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-white break-words">Applications</h2>
+                <p className="text-sm sm:text-base text-blue-400 truncate">{selectedJobTitle}</p>
+                <p className="text-xs sm:text-sm text-slate-400">{selectedJobApplications.length} applicants</p>
               </div>
               <button 
                 onClick={() => setShowApplicationsModal(false)} 
-                className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white flex-shrink-0 active:scale-95 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
               >
-                <X size={24} />
+                <X size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full pl-9 sm:pl-10 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[44px]"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Filter size={18} className="text-slate-400" />
+                <Filter size={16} className="sm:w-[18px] sm:h-[18px] text-slate-400 flex-shrink-0" />
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="px-3 sm:px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all min-h-[44px] flex-1 sm:flex-initial"
                 >
                   <option value="all">All Status</option>
                   <option value="new">New</option>
@@ -886,20 +887,20 @@ export const JobManagement = () => {
                   return (
                     <div 
                       key={app._id} 
-                      className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-all"
+                      className="bg-white/5 border border-white/10 rounded-xl p-4 sm:p-5 hover:bg-white/10 transition-all"
                     >
-                      <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                      <div className="flex flex-col lg:flex-row lg:items-start gap-3 sm:gap-4">
                         {/* Applicant Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <h3 className="text-lg font-bold text-white">{app.fullName}</h3>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 border ${statusColors[app.status]}`}>
-                              <StatusIcon size={12} />
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                            <h3 className="text-base sm:text-lg font-bold text-white truncate">{app.fullName}</h3>
+                            <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 border flex-shrink-0 ${statusColors[app.status]}`}>
+                              <StatusIcon size={10} className="sm:w-3 sm:h-3" />
                               {app.status?.charAt(0).toUpperCase() + app.status?.slice(1)}
                             </span>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-300 mb-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm text-slate-300 mb-3">
                             <div className="flex items-center gap-2">
                               <span className="text-slate-500">Email:</span>
                               <a href={`mailto:${app.email}`} className="text-blue-400 hover:underline truncate">
@@ -940,7 +941,7 @@ export const JobManagement = () => {
                           <select
                             value={app.status}
                             onChange={(e) => updateApplicationStatus(app._id, e.target.value)}
-                            className={`px-4 py-2 rounded-lg border text-sm font-semibold bg-white/5 ${statusColors[app.status]}`}
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-semibold bg-white/5 min-h-[36px] sm:min-h-[44px] ${statusColors[app.status]}`}
                           >
                             <option value="new">New</option>
                             <option value="reviewing">Reviewing</option>
@@ -956,19 +957,21 @@ export const JobManagement = () => {
                               <>
                                 <button
                                   onClick={() => viewResume(app)}
-                                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all"
+                                  className="px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1.5 sm:gap-2 transition-all active:scale-95 min-h-[36px] sm:min-h-[44px]"
                                 >
-                                  <FileText size={16} />
-                                  View Resume
+                                  <FileText size={14} className="sm:w-4 sm:h-4" />
+                                  <span className="hidden sm:inline">View Resume</span>
+                                  <span className="sm:hidden">Resume</span>
                                 </button>
                                 <a
                                   href={app.resumeUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   download
-                                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all"
+                                  className="px-3 sm:px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1.5 sm:gap-2 transition-all active:scale-95 min-h-[36px] sm:min-h-[44px]"
                                 >
-                                  <Download size={16} />
+                                  <Download size={14} className="sm:w-4 sm:h-4" />
+                                  <span className="hidden sm:inline">Download</span>
                                 </a>
                               </>
                             )}
@@ -977,10 +980,10 @@ export const JobManagement = () => {
                                 href={app.linkedinUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium flex items-center gap-1 transition-all"
+                                className="px-2.5 sm:px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1 transition-all active:scale-95 min-h-[36px] sm:min-h-[44px]"
                               >
-                                <ExternalLink size={14} />
-                                LinkedIn
+                                <ExternalLink size={12} className="sm:w-3.5 sm:h-3.5" />
+                                <span className="hidden sm:inline">LinkedIn</span>
                               </a>
                             )}
                           </div>

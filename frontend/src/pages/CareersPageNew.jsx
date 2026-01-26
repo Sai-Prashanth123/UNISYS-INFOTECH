@@ -235,7 +235,7 @@ export const CareersPageNew = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] text-white">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-12 px-4 overflow-hidden">
+      <section className="relative pt-24 sm:pt-28 md:pt-32 pb-8 sm:pb-10 md:pb-12 px-4 sm:px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-blue-500/10 to-transparent"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)]"></div>
 
@@ -265,26 +265,26 @@ export const CareersPageNew = () => {
             </div>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight text-white">
             Career
           </h1>
         </div>
       </section>
 
       {/* Career Content Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 text-blue-400">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 text-blue-400">
                 Build Your Career
               </h2>
               
-              <p className="text-xl md:text-2xl text-white font-semibold mb-8">
+              <p className="text-lg sm:text-xl md:text-2xl text-white font-semibold mb-6 sm:mb-8">
                 We are always on the lookout for Amazing people to join us!
               </p>
               
-              <div className="space-y-6 text-lg text-slate-300 leading-relaxed">
+              <div className="space-y-4 sm:space-y-6 text-base sm:text-lg text-slate-300 leading-relaxed">
                 <p>
                   We consider our employees as our most valuable assets. Therefore, we provide a work-life balance and ample growth opportunities to those who join our organisation.
                 </p>
@@ -316,13 +316,13 @@ export const CareersPageNew = () => {
       </section>
 
       {/* Open Positions Section */}
-      <section id="positions" className="py-20 px-4 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent">
+      <section id="positions" className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-white px-4">
               Open Positions
             </h2>
-            <p className="text-lg text-slate-400 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg text-slate-400 max-w-3xl mx-auto px-4">
               Explore our current job openings and find the perfect role for you
             </p>
             <p className="text-sm text-slate-500 mt-2">
@@ -345,14 +345,14 @@ export const CareersPageNew = () => {
               {jobs.map((job) => (
                 <div
                   key={job._id || job.id}
-                  className="p-8 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border border-blue-900/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-[1.01] group"
+                  className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border border-blue-900/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-[1.01] group"
                 >
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
+                      <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
                         {job.title}
                       </h3>
-                      <div className="flex flex-wrap gap-3 text-sm text-slate-400">
+                      <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-slate-400">
                         <span className="flex items-center gap-1">
                           <Briefcase className="w-4 h-4" />
                           {job.department}
@@ -375,12 +375,12 @@ export const CareersPageNew = () => {
                     </div>
                     <button
                       onClick={() => openApplyModal(job)}
-                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all duration-300 whitespace-nowrap hover:scale-105 shadow-lg"
+                      className="px-4 sm:px-6 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 whitespace-nowrap hover:scale-105 shadow-lg"
                     >
                       Apply Now
                     </button>
                   </div>
-                  <p className="text-slate-300 mb-4">{job.description}</p>
+                  <p className="text-slate-300 mb-4 text-sm sm:text-base">{job.description}</p>
                   
                   {/* Skills tags */}
                   {job.skills && job.skills.length > 0 && (
@@ -408,18 +408,18 @@ export const CareersPageNew = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="p-12 rounded-3xl bg-gradient-to-br from-blue-600/20 to-blue-500/10 border border-blue-500/30">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+          <div className="p-8 sm:p-10 md:p-12 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-600/20 to-blue-500/10 border border-blue-500/30">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-white px-4">
               Don't See a Perfect Fit?
             </h2>
-            <p className="text-slate-300 text-lg mb-8">
+            <p className="text-slate-300 text-base sm:text-lg mb-6 sm:mb-8 px-4">
               We're always interested in meeting talented people. Send us your resume and let's talk about future opportunities.
             </p>
             <Link
               to="/contact"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all duration-300"
+              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300"
             >
               Get in Touch
               <ArrowRight className="w-5 h-5" />
@@ -430,15 +430,15 @@ export const CareersPageNew = () => {
 
       {/* Application Modal */}
       {showApplyModal && selectedJob && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-gradient-to-br from-[#1a2942] to-[#0f1d35] border border-white/20 rounded-2xl p-6 md:p-8 max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-gradient-to-br from-[#1a2942] to-[#0f1d35] border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 max-w-2xl w-full my-4 sm:my-8 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto shadow-2xl">
             {applicationSuccess ? (
               // Success State
-              <div className="text-center py-12">
-                <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle className="w-10 h-10 text-green-400" />
+              <div className="text-center py-8 sm:py-12">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-green-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-4">Application Submitted!</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">Application Submitted!</h2>
                 <p className="text-slate-300 mb-2">
                   Thank you for applying to <span className="text-blue-400 font-semibold">{selectedJob.title}</span>
                 </p>
@@ -449,23 +449,23 @@ export const CareersPageNew = () => {
             ) : (
               // Application Form
               <>
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">Apply for Position</h2>
-                    <p className="text-blue-400 font-medium mt-1">{selectedJob.title}</p>
-                    <p className="text-slate-400 text-sm">{selectedJob.department} • {selectedJob.location}</p>
+                <div className="flex justify-between items-start mb-4 sm:mb-6">
+                  <div className="flex-1 pr-2">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">Apply for Position</h2>
+                    <p className="text-blue-400 font-medium mt-1 text-sm sm:text-base">{selectedJob.title}</p>
+                    <p className="text-slate-400 text-xs sm:text-sm">{selectedJob.department} • {selectedJob.location}</p>
                   </div>
                   <button 
                     onClick={closeApplyModal}
-                    className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                    className="p-1.5 sm:p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors flex-shrink-0"
                   >
-                    <X size={24} />
+                    <X size={20} className="sm:w-6 sm:h-6" />
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmitApplication} className="space-y-5">
+                <form onSubmit={handleSubmitApplication} className="space-y-4 sm:space-y-5">
                   {/* Personal Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-200 mb-1.5">Full Name *</label>
                       <input
@@ -475,7 +475,7 @@ export const CareersPageNew = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="John Doe"
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                       />
                     </div>
                     <div>
@@ -487,7 +487,7 @@ export const CareersPageNew = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="john@example.com"
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                       />
                     </div>
                     <div>
@@ -499,7 +499,7 @@ export const CareersPageNew = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="+1 234 567 8900"
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                       />
                     </div>
                     <div>
@@ -511,7 +511,7 @@ export const CareersPageNew = () => {
                         onChange={handleInputChange}
                         required
                         placeholder="City, Country"
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                       />
                     </div>
                   </div>
@@ -562,7 +562,7 @@ export const CareersPageNew = () => {
                         value={formData.currentCompany}
                         onChange={handleInputChange}
                         placeholder="Company Name"
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                       />
                     </div>
                     <div>
@@ -573,7 +573,7 @@ export const CareersPageNew = () => {
                         value={formData.currentRole}
                         onChange={handleInputChange}
                         placeholder="Job Title"
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                       />
                     </div>
                   </div>
@@ -641,7 +641,7 @@ export const CareersPageNew = () => {
                         value={formData.linkedinUrl}
                         onChange={handleInputChange}
                         placeholder="https://linkedin.com/in/..."
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                       />
                     </div>
                     <div>
@@ -652,7 +652,7 @@ export const CareersPageNew = () => {
                         value={formData.portfolioUrl}
                         onChange={handleInputChange}
                         placeholder="https://..."
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                       />
                     </div>
                   </div>
@@ -671,11 +671,11 @@ export const CareersPageNew = () => {
                   </div>
 
                   {/* Submit Button */}
-                  <div className="flex gap-4 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4">
                     <button
                       type="submit"
                       disabled={submitting || !formData.resumeUrl}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white px-6 py-3.5 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2"
                     >
                       {submitting ? (
                         <>
@@ -692,7 +692,7 @@ export const CareersPageNew = () => {
                     <button
                       type="button"
                       onClick={closeApplyModal}
-                      className="px-6 py-3.5 rounded-xl font-semibold bg-white/10 hover:bg-white/20 text-white transition-all"
+                      className="px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-xl text-sm sm:text-base font-semibold bg-white/10 hover:bg-white/20 text-white transition-all"
                     >
                       Cancel
                     </button>

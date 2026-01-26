@@ -56,10 +56,8 @@ export const ContactPage = () => {
     setSubmitStatus({ type: '', message: '' });
 
     try {
-      // Always use production Azure backend URL (or override with VITE_API_URL env var)
-      const API_URL = import.meta.env.VITE_API_URL || 
-        'https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api';
-      const response = await axios.post(`${API_URL}/contacts`, formData);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await axios.post(`${API_URL}/api/contacts`, formData);
       
       setSubmitStatus({
         type: 'success',

@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import { protect } from '../middleware/auth.js';
 import supabase from '../config/supabase.js';
 import { sendPasswordResetEmail, isEmailConfigured } from '../utils/emailService.js';
+import { authLimiter, passwordResetLimiter } from '../middleware/security.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -23,7 +24,7 @@ const generateResetToken = () => {
 
 // Register - DISABLED (Admin creates users only)
 // This endpoint is kept for backward compatibility but returns 403
-router.post('/register', [
+router.post('/register', authLimiter, [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -39,7 +40,7 @@ router.post('/register', [
 
 // Login - Role-based authentication
 // Frontend sends selectedRole to validate against user's actual role
-router.post('/login', [
+router.post('/login', authLimiter, [
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').notEmpty().withMessage('Password is required'),
   body('selectedRole').optional().isIn(['admin', 'employer', 'employee']).withMessage('Invalid role selection')
@@ -89,7 +90,7 @@ router.post('/login', [
       return res.status(403).json({ 
         message: 'Your account has been deactivated. Please contact your administrator to reactivate your account.',
         errorCode: 'ACCOUNT_DEACTIVATED',
-        supportEmail: 'admin@unisysinfotech.com'
+        supportEmail: 'admin@unisys.com'
       });
     }
 
@@ -171,7 +172,7 @@ router.post('/logout', protect, (req, res) => {
  * POST /api/auth/forgot-password
  * Public endpoint - no auth required
  */
-router.post('/forgot-password', [
+router.post('/forgot-password', passwordResetLimiter, [
   body('email').isEmail().withMessage('Please provide a valid email')
 ], async (req, res) => {
   const errors = validationResult(req);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useThemeStore } from '../../store/index.js';
-import { adminAPI } from '../../api/endpoints.js';
+import { adminAPI, clientAPI } from '../../api/endpoints.js';
 import { toast } from 'react-toastify';
 import { UserPlus, Edit2, Trash2, Power, PowerOff, Users, Briefcase, RefreshCw, Loader2, Wifi, WifiOff, Search, X, Save, UserCheck, UserX, Building2 } from 'lucide-react';
 import supabase from '../../config/supabase.js';
@@ -20,6 +20,7 @@ export const AdminUserManagement = () => {
   const isDark = useThemeStore((state) => state.isDark);
   const [users, setUsers] = useState([]);
   const [employers, setEmployers] = useState([]);
+  const [clients, setClients] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -40,6 +41,7 @@ export const AdminUserManagement = () => {
     password: '',
     role: 'employee',
     employerId: '',
+    clientId: '',
     designation: '',
     department: '',
     hourlyPay: '',
@@ -79,11 +81,22 @@ export const AdminUserManagement = () => {
     }
   }, []);
 
+  // Fetch clients
+  const fetchClients = useCallback(async () => {
+    try {
+      const response = await clientAPI.getActive();
+      setClients(response.data.clients || []);
+    } catch (error) {
+      console.error('Failed to fetch clients');
+    }
+  }, []);
+
   // Initial fetch
   useEffect(() => {
     fetchUsers();
     fetchEmployers();
-  }, [fetchUsers, fetchEmployers]);
+    fetchClients();
+  }, [fetchUsers, fetchEmployers, fetchClients]);
 
   // Refetch when filter changes
   useEffect(() => {
@@ -162,6 +175,10 @@ export const AdminUserManagement = () => {
         payload.employerId = formData.employerId;
       }
 
+      if (formData.clientId) {
+        payload.clientId = formData.clientId;
+      }
+
       await adminAPI.createUser(payload);
       toast.success(`${formData.role.charAt(0).toUpperCase() + formData.role.slice(1)} account created successfully!`);
       setShowCreateModal(false);
@@ -201,6 +218,10 @@ export const AdminUserManagement = () => {
         payload.employerId = formData.employerId;
       }
 
+      if (formData.clientId !== undefined) {
+        payload.clientId = formData.clientId || null;
+      }
+
       await adminAPI.updateUser(editingUser._id, payload);
       toast.success('User updated successfully!');
       setShowEditModal(false);
@@ -225,6 +246,7 @@ export const AdminUserManagement = () => {
       password: '',
       role: user.role || 'employee',
       employerId: user.employerId?._id || user.employerId?.id || user.employerId || '',
+      clientId: user.clientId?._id || user.clientId?.id || user.clientId || user.client_id || '',
       designation: user.designation || '',
       department: user.department || '',
       hourlyPay: user.hourlyPay || user.hourly_pay || '',
@@ -297,6 +319,7 @@ export const AdminUserManagement = () => {
       password: '',
       role: 'employee',
       employerId: '',
+      clientId: '',
       designation: '',
       department: '',
       hourlyPay: '',
@@ -364,108 +387,110 @@ export const AdminUserManagement = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 text-white">User Management</h1>
-            <p className="text-slate-300">Create and manage employer and employee accounts</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-white break-words">User Management</h1>
+            <p className="text-sm sm:text-base text-slate-300">Create and manage employer and employee accounts</p>
             {lastUpdated && (
-              <p className="text-slate-500 text-sm mt-1">Last updated: {formatLastUpdated()}</p>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">Last updated: {formatLastUpdated()}</p>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             {/* Connection Status */}
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-              {isConnected ? <Wifi size={16} /> : <WifiOff size={16} />}
-              <span className="text-sm font-medium">{isConnected ? 'Live' : 'Offline'}</span>
+            <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm ${isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+              {isConnected ? <Wifi size={14} className="sm:w-4 sm:h-4" /> : <WifiOff size={14} className="sm:w-4 sm:h-4" />}
+              <span className="font-medium">{isConnected ? 'Live' : 'Offline'}</span>
             </div>
             
             {/* Refresh Button */}
             <button
               onClick={() => fetchUsers(true)}
               disabled={refreshing || loading}
-              className="flex items-center gap-2 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-semibold px-4 py-3 rounded-xl transition-all duration-300"
+              className="flex items-center gap-1.5 sm:gap-2 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 active:scale-95 min-h-[44px]"
               title="Refresh data"
             >
-              <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+              <RefreshCw size={16} className={`sm:w-5 sm:h-5 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
             </button>
 
             {/* Create User Button */}
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+              className="flex items-center gap-1.5 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 min-h-[44px]"
             >
-              <UserPlus size={20} />
-              Create User
+              <UserPlus size={18} className="sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Create User</span>
+              <span className="sm:hidden">Add</span>
             </button>
           </div>
         </div>
 
         {/* Stats Cards */}
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
             {[1, 2, 3, 4, 5].map(i => <StatCardSkeleton key={i} />)}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Users className="w-6 h-6 text-blue-400" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-500/30 rounded-xl p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-white">{stats.total}</p>
-                  <p className="text-slate-400 text-xs">Total Users</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-indigo-600/20 to-indigo-800/20 backdrop-blur-sm border border-indigo-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-500/20 rounded-lg">
-                  <Building2 className="w-6 h-6 text-indigo-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white">{stats.employers}</p>
-                  <p className="text-slate-400 text-xs">Employers</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-white truncate">{stats.total}</p>
+                  <p className="text-slate-400 text-xs truncate">Total Users</p>
                 </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-cyan-600/20 to-cyan-800/20 backdrop-blur-sm border border-cyan-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-cyan-500/20 rounded-lg">
-                  <Briefcase className="w-6 h-6 text-cyan-400" />
+            <div className="bg-gradient-to-br from-indigo-600/20 to-indigo-800/20 backdrop-blur-sm border border-indigo-500/30 rounded-xl p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-indigo-500/20 rounded-lg flex-shrink-0">
+                  <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-white">{stats.employees}</p>
-                  <p className="text-slate-400 text-xs">Employees</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <UserCheck className="w-6 h-6 text-green-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-white">{stats.active}</p>
-                  <p className="text-slate-400 text-xs">Active</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-white truncate">{stats.employers}</p>
+                  <p className="text-slate-400 text-xs truncate">Employers</p>
                 </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-red-600/20 to-red-800/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-500/20 rounded-lg">
-                  <UserX className="w-6 h-6 text-red-400" />
+            <div className="bg-gradient-to-br from-cyan-600/20 to-cyan-800/20 backdrop-blur-sm border border-cyan-500/30 rounded-xl p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-cyan-500/20 rounded-lg flex-shrink-0">
+                  <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold text-white">{stats.inactive}</p>
-                  <p className="text-slate-400 text-xs">Inactive</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-white truncate">{stats.employees}</p>
+                  <p className="text-slate-400 text-xs truncate">Employees</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-green-500/20 rounded-lg flex-shrink-0">
+                  <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-white truncate">{stats.active}</p>
+                  <p className="text-slate-400 text-xs truncate">Active</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-red-600/20 to-red-800/20 backdrop-blur-sm border border-red-500/30 rounded-xl p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-red-500/20 rounded-lg flex-shrink-0">
+                  <UserX className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl sm:text-2xl font-bold text-white truncate">{stats.inactive}</p>
+                  <p className="text-slate-400 text-xs truncate">Inactive</p>
                 </div>
               </div>
             </div>
@@ -473,56 +498,56 @@ export const AdminUserManagement = () => {
         )}
 
         {/* Search and Filters */}
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-lg mb-6">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-lg mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+            <div className="relative flex-1 w-full sm:max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
-                placeholder="Search by name, email, designation..."
+                placeholder="Search by name, email, de..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-10 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2.5 bg-white/10 border border-white/20 rounded-xl text-sm sm:text-base text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 min-h-[44px]"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white p-1"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               )}
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 sm:gap-3 flex-wrap">
               <button
                 onClick={() => setFilterRole('')}
-                className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${
+                className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 active:scale-95 min-h-[44px] ${
                   filterRole === '' 
                     ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-white/10 text-white hover:bg-white/20'
+                    : 'bg-white/10 text-white hover:bg-white/20 active:bg-white/25'
                 }`}
               >
                 All Users
               </button>
               <button
                 onClick={() => setFilterRole('employer')}
-                className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${
+                className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 active:scale-95 min-h-[44px] ${
                   filterRole === 'employer' 
                     ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-white/10 text-white hover:bg-white/20'
+                    : 'bg-white/10 text-white hover:bg-white/20 active:bg-white/25'
                 }`}
               >
                 Employers
               </button>
               <button
                 onClick={() => setFilterRole('employee')}
-                className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${
+                className={`px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 active:scale-95 min-h-[44px] ${
                   filterRole === 'employee' 
                     ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-white/10 text-white hover:bg-white/20'
+                    : 'bg-white/10 text-white hover:bg-white/20 active:bg-white/25'
                 }`}
               >
                 Employees
@@ -532,16 +557,17 @@ export const AdminUserManagement = () => {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
+          <div className="overflow-x-auto -mx-3 sm:mx-0">
+            <table className="w-full min-w-[700px]">
               <thead className="bg-white/5 border-b border-white/10">
                 <tr>
-                  <th className="px-6 py-4 text-left font-semibold text-white">User</th>
-                  <th className="px-6 py-4 text-left font-semibold text-white">Role</th>
-                  <th className="px-6 py-4 text-left font-semibold text-white">Employer</th>
-                  <th className="px-6 py-4 text-center font-semibold text-white">Status</th>
-                  <th className="px-6 py-4 text-center font-semibold text-white">Actions</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">User</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Role</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white hidden sm:table-cell">Employer</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white hidden sm:table-cell">Client</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm font-semibold text-white">Status</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-center text-xs sm:text-sm font-semibold text-white">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
@@ -558,49 +584,52 @@ export const AdminUserManagement = () => {
                         deletingId === userId ? 'opacity-50' : ''
                       }`}
                     >
-                      <td className="px-6 py-4 text-white">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${getRoleBadgeColor(user.role)}`}>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-white">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-sm sm:text-base font-bold flex-shrink-0 ${getRoleBadgeColor(user.role)}`}>
                             {(user.name || 'U').charAt(0).toUpperCase()}
                           </div>
-                          <div>
-                            <div className="font-semibold">{user.name}</div>
-                            <div className="text-sm text-slate-300">{user.email}</div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-sm sm:text-base truncate">{user.name}</div>
+                            <div className="text-xs sm:text-sm text-slate-300 truncate">{user.email}</div>
                             {user.designation && (
-                              <div className="text-xs text-slate-400">{user.designation}</div>
+                              <div className="text-xs text-slate-400 truncate">{user.designation}</div>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`${getRoleBadgeColor(user.role)} text-white px-3 py-1 rounded-full text-sm font-semibold capitalize`}>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className={`${getRoleBadgeColor(user.role)} text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold capitalize inline-block`}>
                           {user.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-white">
-                        {user.employerId?.name || '-'}
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-white hidden sm:table-cell">
+                        <span className="text-sm truncate block">{user.employerId?.name || '-'}</span>
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-white hidden sm:table-cell">
+                        <span className="text-sm truncate block">{user.clientId?.name || user.client?.name || '-'}</span>
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                         {(user.isActive === true || user.is_active === true) ? (
-                          <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          <span className="bg-green-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold inline-block">
                             Active
                           </span>
                         ) : (
-                          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          <span className="bg-red-500 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold inline-block">
                             Inactive
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                           {/* Edit Button */}
                           <button
                             onClick={() => openEditModal(user)}
                             disabled={deletingId === userId}
-                            className="p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 transition-colors disabled:opacity-50"
+                            className="p-1.5 sm:p-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 transition-colors disabled:opacity-50 active:scale-95 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                             title="Edit user"
                           >
-                            <Edit2 size={18} className="text-blue-400" />
+                            <Edit2 size={16} className="sm:w-[18px] sm:h-[18px] text-blue-400" />
                           </button>
                           
                           {/* Toggle Status Button */}
@@ -610,7 +639,7 @@ export const AdminUserManagement = () => {
                               <button
                                 onClick={() => handleToggleStatus(userId, isUserActive)}
                                 disabled={togglingId === userId || deletingId === userId}
-                                className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
+                                className={`p-1.5 sm:p-2 rounded-lg transition-colors disabled:opacity-50 active:scale-95 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center ${
                                   isUserActive
                                     ? 'bg-orange-500/20 hover:bg-orange-500/30'
                                     : 'bg-green-500/20 hover:bg-green-500/30'
@@ -618,11 +647,11 @@ export const AdminUserManagement = () => {
                                 title={isUserActive ? 'Deactivate' : 'Activate'}
                               >
                                 {togglingId === userId ? (
-                                  <Loader2 size={18} className="text-slate-400 animate-spin" />
+                                  <Loader2 size={16} className="sm:w-[18px] sm:h-[18px] text-slate-400 animate-spin" />
                                 ) : isUserActive ? (
-                                  <PowerOff size={18} className="text-orange-400" />
+                                  <PowerOff size={16} className="sm:w-[18px] sm:h-[18px] text-orange-400" />
                                 ) : (
-                                  <Power size={18} className="text-green-400" />
+                                  <Power size={16} className="sm:w-[18px] sm:h-[18px] text-green-400" />
                                 )}
                               </button>
                             );
@@ -633,13 +662,13 @@ export const AdminUserManagement = () => {
                             <button
                               onClick={() => handleDeleteUser(userId, user.name)}
                               disabled={deletingId !== null}
-                              className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                              className="p-1.5 sm:p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors disabled:opacity-50 active:scale-95 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                               title="Delete user"
                             >
                               {deletingId === userId ? (
-                                <Loader2 size={18} className="text-red-400 animate-spin" />
+                                <Loader2 size={16} className="sm:w-[18px] sm:h-[18px] text-red-400 animate-spin" />
                               ) : (
-                                <Trash2 size={18} className="text-red-400" />
+                                <Trash2 size={16} className="sm:w-[18px] sm:h-[18px] text-red-400" />
                               )}
                             </button>
                           )}
@@ -760,6 +789,23 @@ export const AdminUserManagement = () => {
                     </select>
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-slate-200">Assign to Client</label>
+                  <select
+                    value={formData.clientId}
+                    onChange={(e) => setFormData({...formData, clientId: e.target.value})}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                  >
+                    <option value="" className="bg-slate-800">No Client</option>
+                    {clients.map(client => {
+                      const clientId = client._id || client.id;
+                      return (
+                        <option key={clientId} value={clientId} className="bg-slate-800">{client.name}</option>
+                      );
+                    })}
+                  </select>
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2 text-slate-200">Designation</label>
@@ -906,6 +952,23 @@ export const AdminUserManagement = () => {
                     </select>
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-slate-200">Assign to Client</label>
+                  <select
+                    value={formData.clientId}
+                    onChange={(e) => setFormData({...formData, clientId: e.target.value})}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                  >
+                    <option value="" className="bg-slate-800">No Client</option>
+                    {clients.map(client => {
+                      const clientId = client._id || client.id;
+                      return (
+                        <option key={clientId} value={clientId} className="bg-slate-800">{client.name}</option>
+                      );
+                    })}
+                  </select>
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2 text-slate-200">Designation</label>

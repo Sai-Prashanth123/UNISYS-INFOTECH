@@ -114,60 +114,60 @@ export const TimecardsManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Timecard Management</h1>
-          <p className="text-slate-300">View and manage all employee timecards</p>
+        <div className="mb-4 sm:mb-6 md:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">Timecard Management</h1>
+          <p className="text-sm sm:text-base text-slate-300">View and manage all employee timecards</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-500/30 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <Clock className="w-6 h-6 text-blue-400" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-500/30 rounded-xl p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
               </div>
-              <div>
-                <p className="text-slate-400 text-sm">Total Hours</p>
-                <p className="text-2xl font-bold text-white">{stats.totalHours?.toFixed(1) || 0}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-500/30 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <Calendar className="w-6 h-6 text-purple-400" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Total Entries</p>
-                <p className="text-2xl font-bold text-white">{stats.totalEntries || 0}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-slate-400 text-xs sm:text-sm">Total Hours</p>
+                <p className="text-xl sm:text-2xl font-bold text-white truncate">{stats.totalHours?.toFixed(1) || 0}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <Users className="w-6 h-6 text-green-400" />
+          <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-500/30 rounded-xl p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-purple-500/20 rounded-lg flex-shrink-0">
+                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
               </div>
-              <div>
-                <p className="text-slate-400 text-sm">Employees</p>
-                <p className="text-2xl font-bold text-white">{stats.uniqueEmployees || 0}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-slate-400 text-xs sm:text-sm">Total Entries</p>
+                <p className="text-xl sm:text-2xl font-bold text-white truncate">{stats.totalEntries || 0}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-600/20 to-orange-800/20 backdrop-blur-sm border border-orange-500/30 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-500/20 rounded-lg">
-                <Clock className="w-6 h-6 text-orange-400" />
+          <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 backdrop-blur-sm border border-green-500/30 rounded-xl p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-green-500/20 rounded-lg flex-shrink-0">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
               </div>
-              <div>
-                <p className="text-slate-400 text-sm">Avg Hours/Entry</p>
-                <p className="text-2xl font-bold text-white">
+              <div className="min-w-0 flex-1">
+                <p className="text-slate-400 text-xs sm:text-sm">Employees</p>
+                <p className="text-xl sm:text-2xl font-bold text-white truncate">{stats.uniqueEmployees || 0}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-600/20 to-orange-800/20 backdrop-blur-sm border border-orange-500/30 rounded-xl p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-orange-500/20 rounded-lg flex-shrink-0">
+                <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-slate-400 text-xs sm:text-sm">Avg Hours/Entry</p>
+                <p className="text-xl sm:text-2xl font-bold text-white truncate">
                   {stats.totalEntries > 0 ? (stats.totalHours / stats.totalEntries).toFixed(1) : 0}
                 </p>
               </div>
@@ -176,23 +176,23 @@ export const TimecardsManagement = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-4 mb-6">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
-            <div className="flex gap-4 items-center flex-wrap">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
               {/* Month Selector */}
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-slate-400" />
+              <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0" />
                 <input
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-slate-800/50 border border-slate-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="bg-slate-800/50 border border-slate-600 text-white text-sm sm:text-base rounded-lg px-2 sm:px-3 py-2 flex-1 sm:flex-initial focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
                 />
               </div>
 
               {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <div className="relative flex-1 sm:flex-initial">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search employee..."
@@ -201,22 +201,22 @@ export const TimecardsManagement = () => {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="bg-slate-800/50 border border-slate-600 text-white rounded-lg pl-10 pr-4 py-2 w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="bg-slate-800/50 border border-slate-600 text-white text-sm sm:text-base rounded-lg pl-9 sm:pl-10 pr-4 py-2 w-full sm:w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
                 />
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
               <button
                 onClick={fetchTimecards}
-                className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition"
+                className="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white text-sm sm:text-base px-4 py-2.5 sm:py-2 rounded-lg transition active:scale-95 min-h-[44px]"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh
               </button>
               <button
                 onClick={exportToCSV}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition"
+                className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm sm:text-base px-4 py-2.5 sm:py-2 rounded-lg transition active:scale-95 min-h-[44px]"
               >
                 <Download className="w-4 h-4" />
                 Export CSV
@@ -226,11 +226,11 @@ export const TimecardsManagement = () => {
         </div>
 
         {/* Month Title */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-white">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-white break-words">
             Timecards for {getMonthName()}
           </h2>
-          <span className="text-slate-400">
+          <span className="text-xs sm:text-sm text-slate-400 whitespace-nowrap">
             Showing {paginatedTimecards.length} of {filteredTimecards.length} entries
           </span>
         </div>
@@ -251,14 +251,14 @@ export const TimecardsManagement = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="overflow-x-auto -mx-3 sm:mx-0">
+                <table className="w-full min-w-[600px]">
                   <thead className="bg-slate-800/50">
                     <tr>
-                      <th className="text-left text-slate-300 font-semibold px-6 py-4">Employee</th>
-                      <th className="text-center text-slate-300 font-semibold px-6 py-4">Hours</th>
-                      <th className="text-center text-slate-300 font-semibold px-6 py-4">Hourly Pay</th>
-                      <th className="text-center text-slate-300 font-semibold px-6 py-4">Total Pay</th>
+                      <th className="text-left text-slate-300 text-xs sm:text-sm font-semibold px-3 sm:px-6 py-3 sm:py-4">Employee</th>
+                      <th className="text-center text-slate-300 text-xs sm:text-sm font-semibold px-3 sm:px-6 py-3 sm:py-4">Hours</th>
+                      <th className="text-center text-slate-300 text-xs sm:text-sm font-semibold px-3 sm:px-6 py-3 sm:py-4">Hourly Pay</th>
+                      <th className="text-center text-slate-300 text-xs sm:text-sm font-semibold px-3 sm:px-6 py-3 sm:py-4">Total Pay</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/50">
@@ -268,20 +268,20 @@ export const TimecardsManagement = () => {
                       
                       return (
                         <tr key={tc.userId} className="hover:bg-white/5 transition">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-blue-600/30 rounded-full flex items-center justify-center">
-                                <User className="w-4 h-4 text-blue-400" />
+                          <td className="px-3 sm:px-6 py-3 sm:py-4">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
                               </div>
-                              <div>
-                                <p className="text-white font-medium">{tc.name || 'Unknown'}</p>
-                                <p className="text-slate-400 text-sm">{tc.email || 'N/A'}</p>
-                                <p className="text-slate-500 text-xs mt-0.5 capitalize">{tc.role || ''}</p>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-white text-sm sm:text-base font-medium truncate">{tc.name || 'Unknown'}</p>
+                                <p className="text-slate-400 text-xs sm:text-sm truncate">{tc.email || 'N/A'}</p>
+                                <p className="text-slate-500 text-xs mt-0.5 capitalize truncate">{tc.role || ''}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className={`inline-flex items-center justify-center min-w-[60px] px-3 py-1 rounded-full font-bold ${
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
+                            <span className={`inline-flex items-center justify-center min-w-[50px] sm:min-w-[60px] px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold ${
                               tc.totalHours >= 160 
                                 ? 'bg-green-600/30 text-green-400' 
                                 : tc.totalHours >= 80 
@@ -291,13 +291,13 @@ export const TimecardsManagement = () => {
                               {(tc.totalHours || 0).toFixed(2)}h
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="text-white font-semibold">
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
+                            <span className="text-white text-sm sm:text-base font-semibold">
                               ${hourlyPay.toFixed(2)}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-center">
-                            <span className="text-green-400 font-bold">
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
+                            <span className="text-green-400 text-sm sm:text-base font-bold">
                               ${totalPay.toFixed(2)}
                             </span>
                           </td>

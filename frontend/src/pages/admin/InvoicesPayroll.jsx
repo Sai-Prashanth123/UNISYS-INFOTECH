@@ -309,13 +309,13 @@ export const InvoicesPayroll = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-6">
-      <div className={`flex gap-6 max-w-[1800px] mx-auto ${activeTab === 'list' ? '' : 'max-w-7xl'}`}>
+    <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] p-3 sm:p-4 md:p-6">
+      <div className={`flex flex-col lg:flex-row gap-4 sm:gap-6 max-w-[1800px] mx-auto ${activeTab === 'list' ? '' : 'max-w-7xl'}`}>
         {/* Sidebar - Invoice List (only show on list tab) */}
         {activeTab === 'list' && (
-          <div className="w-80 flex-shrink-0">
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
-              <h2 className="text-xl font-bold text-white mb-4">Invoices</h2>
+          <div className="w-full lg:w-80 flex-shrink-0 order-2 lg:order-1">
+            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:sticky lg:top-6 max-h-[400px] lg:max-h-[calc(100vh-3rem)] overflow-y-auto">
+              <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Invoices</h2>
               {loading ? (
                 <div className="text-center py-8 text-slate-400">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
@@ -367,31 +367,31 @@ export const InvoicesPayroll = () => {
         )}
 
         {/* Main Content */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 order-1 lg:order-2">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Invoices & Payroll</h1>
-          <p className="text-slate-300">Manage invoices, track payroll, and monitor payments</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 break-words">Invoices & Payroll</h1>
+          <p className="text-sm sm:text-base text-slate-300">Manage invoices, track payroll, and monitor payments</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 sm:mb-6">
           <button
             onClick={() => setActiveTab('list')}
-            className={`px-6 py-3 rounded-lg font-semibold transition ${
+            className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition active:scale-95 min-h-[44px] ${
               activeTab === 'list'
                 ? 'bg-blue-600 text-white'
-                : 'bg-white/10 text-slate-300 hover:bg-white/15'
+                : 'bg-white/10 text-slate-300 hover:bg-white/15 active:bg-white/20'
             }`}
           >
             Invoices List
           </button>
           <button
             onClick={() => setActiveTab('pending')}
-            className={`px-6 py-3 rounded-lg font-semibold transition ${
+            className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition active:scale-95 min-h-[44px] ${
               activeTab === 'pending'
                 ? 'bg-blue-600 text-white'
-                : 'bg-white/10 text-slate-300 hover:bg-white/15'
+                : 'bg-white/10 text-slate-300 hover:bg-white/15 active:bg-white/20'
             }`}
           >
             Pending Tracker
@@ -402,32 +402,32 @@ export const InvoicesPayroll = () => {
         {activeTab === 'list' && (
           <>
             {/* Filters and Actions */}
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-3 sm:mb-4">
                 <input
                   type="text"
                   placeholder="Search by invoice number..."
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                  className="px-3 sm:px-4 py-2.5 sm:py-2 bg-white/5 border border-white/10 rounded-lg text-sm sm:text-base text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 min-h-[44px]"
                 />
                 <input
                   type="text"
                   placeholder="Filter by name..."
                   value={filters.name}
                   onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                  className="px-3 sm:px-4 py-2.5 sm:py-2 bg-white/5 border border-white/10 rounded-lg text-sm sm:text-base text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 min-h-[44px]"
                 />
                 <input
                   type="month"
                   value={filters.month}
                   onChange={(e) => setFilters({ ...filters, month: e.target.value })}
-                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  className="px-3 sm:px-4 py-2.5 sm:py-2 bg-white/5 border border-white/10 rounded-lg text-sm sm:text-base text-white focus:outline-none focus:border-blue-500 min-h-[44px]"
                 />
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                  className="px-3 sm:px-4 py-2.5 sm:py-2 bg-white/5 border border-white/10 rounded-lg text-sm sm:text-base text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer min-h-[44px]"
                 >
                   <option value="" className="bg-slate-800">All Status</option>
                   <option value="Received" className="bg-slate-800">Received</option>
@@ -439,36 +439,37 @@ export const InvoicesPayroll = () => {
                     resetForm();
                     setShowForm(true);
                   }}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-2 rounded-lg transition"
+                  className="flex items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-2 rounded-lg transition active:scale-95 min-h-[44px]"
                 >
-                  <Plus size={20} />
-                  Add Invoice
+                  <Plus size={18} className="sm:w-5 sm:h-5" />
+                  <span className="hidden sm:inline">Add Invoice</span>
+                  <span className="sm:hidden">Add</span>
                 </button>
               </div>
             </div>
 
             {/* Invoices Table */}
-            <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
-              <div className="overflow-x-auto">
-                <table className="w-full">
+            <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto -mx-3 sm:mx-0">
+                <table className="w-full min-w-[1000px]">
                   <thead>
                     <tr className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 border-b border-slate-700/50">
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">End Client</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Type</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Payroll Month</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Invoice No</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Hours</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Payment Date</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-300 uppercase tracking-wider">Actions</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider">End Client</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider">Type</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider">Name</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider hidden lg:table-cell">Payroll Month</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider">Invoice No</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider">Amount</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider hidden md:table-cell">Hours</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider">Status</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider hidden xl:table-cell">Payment Date</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-bold text-slate-300 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-700/30">
                     {loading ? (
                       <tr>
-                        <td colSpan="10" className="px-6 py-12 text-center text-slate-400">
+                        <td colSpan="10" className="px-3 sm:px-6 py-8 sm:py-12 text-center text-slate-400">
                           <div className="flex flex-col items-center gap-3">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                             <span>Loading invoices...</span>
@@ -477,10 +478,10 @@ export const InvoicesPayroll = () => {
                       </tr>
                     ) : invoices.length === 0 ? (
                       <tr>
-                        <td colSpan="10" className="px-6 py-12 text-center text-slate-400">
+                        <td colSpan="10" className="px-3 sm:px-6 py-8 sm:py-12 text-center text-slate-400">
                           <div className="flex flex-col items-center gap-2">
-                            <AlertCircle className="w-12 h-12 text-slate-500" />
-                            <span>No invoices found</span>
+                            <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-slate-500" />
+                            <span className="text-sm sm:text-base">No invoices found</span>
                           </div>
                         </td>
                       </tr>
@@ -494,65 +495,63 @@ export const InvoicesPayroll = () => {
                             selectedInvoiceId === invoice._id ? 'bg-blue-600/20 border-l-4 border-blue-500' : ''
                           }`}
                         >
-                          <td className="px-6 py-5">
-                            <span className="text-slate-300">{invoice.endClient || <span className="text-slate-500">-</span>}</span>
+                          <td className="px-3 sm:px-6 py-3 sm:py-5">
+                            <span className="text-xs sm:text-sm text-slate-300 truncate block">{invoice.endClient || <span className="text-slate-500">-</span>}</span>
                           </td>
-                          <td className="px-6 py-5">
-                            <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border ${invoice.employmentType === '1099' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
+                          <td className="px-3 sm:px-6 py-3 sm:py-5">
+                            <span className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold border ${invoice.employmentType === '1099' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
                               {invoice.employmentType || 'W2'}
                               {invoice.employmentType === '1099' && invoice.name1099 && (
-                                <span className="ml-1.5 text-[10px] opacity-80">({invoice.name1099})</span>
+                                <span className="ml-1.5 text-[9px] sm:text-[10px] opacity-80 hidden sm:inline">({invoice.name1099})</span>
                               )}
                             </span>
                           </td>
-                          <td className="px-6 py-5">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                          <td className="px-3 sm:px-6 py-3 sm:py-5">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0">
                                 {(invoice.name || 'U').charAt(0).toUpperCase()}
                               </div>
-                              <span className="text-white font-semibold">{invoice.name || 'Unknown'}</span>
+                              <span className="text-white text-xs sm:text-sm font-semibold truncate">{invoice.name || 'Unknown'}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-5 text-slate-300 font-medium">{invoice.payrollMonth}</td>
-                          <td className="px-6 py-5">
-                            <span className="text-slate-200 font-mono text-sm bg-slate-700/30 px-3 py-1 rounded-lg">{invoice.invoiceNumber}</span>
+                          <td className="px-3 sm:px-6 py-3 sm:py-5 text-xs sm:text-sm text-slate-300 font-medium hidden lg:table-cell">{invoice.payrollMonth}</td>
+                          <td className="px-3 sm:px-6 py-3 sm:py-5">
+                            <span className="text-slate-200 font-mono text-xs sm:text-sm bg-slate-700/30 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg truncate block">{invoice.invoiceNumber}</span>
                           </td>
-                          <td className="px-6 py-5">
-                            <span className="text-emerald-400 font-bold text-lg">${(invoice.invoiceAmount || 0).toLocaleString()}</span>
+                          <td className="px-3 sm:px-6 py-3 sm:py-5">
+                            <span className="text-emerald-400 font-bold text-sm sm:text-lg">${(invoice.invoiceAmount || 0).toLocaleString()}</span>
                           </td>
-                          <td className="px-6 py-5">
-                            <span className="text-slate-300 font-medium">{invoice.numberOfHours}</span>
-                          </td>
-                          <td className="px-6 py-5">
-                            <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-bold border ${getStatusColor(invoice.status)}`}>
+                          <td className="px-3 sm:px-6 py-3 sm:py-5 text-xs sm:text-sm text-slate-300 font-medium hidden md:table-cell">{invoice.numberOfHours}</td>
+                          <td className="px-3 sm:px-6 py-3 sm:py-5">
+                            <span className={`inline-flex px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold border ${getStatusColor(invoice.status)}`}>
                               {invoice.status}
                             </span>
                           </td>
-                          <td className="px-6 py-5 text-slate-300 font-medium">
+                          <td className="px-3 sm:px-6 py-3 sm:py-5 text-xs sm:text-sm text-slate-300 font-medium hidden xl:table-cell">
                             {invoice.paymentReceivedDate ? formatUSDate(invoice.paymentReceivedDate) : <span className="text-slate-500">-</span>}
                           </td>
-                          <td className="px-6 py-5">
-                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <td className="px-3 sm:px-6 py-3 sm:py-5">
+                            <div className="flex gap-1.5 sm:gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                               <button
-                                onClick={() => handleViewDeductions(invoice)}
-                                className="p-2.5 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/40 transition-all hover:scale-110"
+                                onClick={(e) => { e.stopPropagation(); handleViewDeductions(invoice); }}
+                                className="p-1.5 sm:p-2.5 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/40 transition-all hover:scale-110 active:scale-95 min-h-[32px] min-w-[32px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                                 title="View Deductions"
                               >
-                                <DollarSign size={18} />
+                                <DollarSign size={14} className="sm:w-[18px] sm:h-[18px]" />
                               </button>
                               <button
-                                onClick={() => handleEdit(invoice)}
-                                className="p-2.5 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/40 transition-all hover:scale-110"
+                                onClick={(e) => { e.stopPropagation(); handleEdit(invoice); }}
+                                className="p-1.5 sm:p-2.5 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/40 transition-all hover:scale-110 active:scale-95 min-h-[32px] min-w-[32px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                                 title="Edit"
                               >
-                                <Edit size={18} />
+                                <Edit size={14} className="sm:w-[18px] sm:h-[18px]" />
                               </button>
                               <button
-                                onClick={() => handleDelete(invoice._id)}
-                                className="p-2.5 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/40 transition-all hover:scale-110"
+                                onClick={(e) => { e.stopPropagation(); handleDelete(invoice._id); }}
+                                className="p-1.5 sm:p-2.5 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/40 transition-all hover:scale-110 active:scale-95 min-h-[32px] min-w-[32px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
                                 title="Delete"
                               >
-                                <Trash2 size={18} />
+                                <Trash2 size={14} className="sm:w-[18px] sm:h-[18px]" />
                               </button>
                             </div>
                           </td>

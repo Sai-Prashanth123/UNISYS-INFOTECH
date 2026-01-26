@@ -119,14 +119,15 @@ export const ContactPageNew = () => {
       icon: MapPin,
       title: 'Address',
       details: '20830 Torrence Chapel Rd Ste 203 Cornelius, NC, 28031',
-      link: '#'
+      link: 'https://www.google.com/maps/search/?api=1&query=20830+Torrence+Chapel+Rd+Ste+203+Cornelius+NC+28031',
+      external: true
     }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] text-white">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-12 px-4 overflow-hidden">
+      <section className="relative pt-24 sm:pt-28 md:pt-32 pb-8 sm:pb-10 md:pb-12 px-4 sm:px-6 overflow-hidden">
         {/* Animated background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-blue-500/10 to-transparent"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)]"></div>
@@ -138,26 +139,26 @@ export const ContactPageNew = () => {
           </div>
 
           {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight text-white">
             Contact Us
           </h1>
         </div>
       </section>
 
       {/* Contact Info Cards */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           {/* Intro Message */}
-          <div className="text-center mb-16">
-            <p className="text-xl text-slate-300 max-w-3xl mx-auto">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto px-4">
               If you have an idea, we would like to hear about it please drop a message.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12">
             {/* Left - Contact Form */}
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-white">
                 Send Us a Message
               </h2>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -173,7 +174,7 @@ export const ContactPageNew = () => {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg bg-[#1a2942]/50 border border-blue-900/30 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors"
+                    className="w-full px-4 py-3 text-sm sm:text-base rounded-lg bg-[#1a2942]/50 border border-blue-900/30 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors"
                     placeholder="Enter your name"
                   />
                 </div>
@@ -190,7 +191,7 @@ export const ContactPageNew = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg bg-[#1a2942]/50 border border-blue-900/30 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors"
+                    className="w-full px-4 py-3 text-sm sm:text-base rounded-lg bg-[#1a2942]/50 border border-blue-900/30 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors"
                     placeholder="Enter your email"
                   />
                 </div>
@@ -206,7 +207,7 @@ export const ContactPageNew = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    pattern="[0-9\s\-()+]*"
+                    pattern="[0-9\-()+ ]*"
                     required
                     className={`w-full px-4 py-3 rounded-lg bg-[#1a2942]/50 border ${errors.phone ? 'border-red-500' : 'border-blue-900/30'} text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors`}
                     placeholder="Enter your phone number"
@@ -249,7 +250,7 @@ export const ContactPageNew = () => {
                     value={formData.captcha}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg bg-[#1a2942]/50 border border-blue-900/30 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors"
+                    className="w-full px-4 py-3 text-sm sm:text-base rounded-lg bg-[#1a2942]/50 border border-blue-900/30 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition-colors"
                     placeholder="Enter your answer"
                   />
                 </div>
@@ -258,17 +259,17 @@ export const ContactPageNew = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Send className="w-5 h-5" />
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                   {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </div>
 
             {/* Right - Contact Info */}
-            <div className="space-y-6">
-              <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white">
+            <div className="space-y-4 sm:space-y-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-white">
                 Contact Information
               </h2>
               {contactInfo.map((info, idx) => {
@@ -277,14 +278,16 @@ export const ContactPageNew = () => {
                   <a
                     key={idx}
                     href={info.link}
-                    className="p-6 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border border-blue-900/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 flex items-start gap-4 block"
+                    target={info.external ? "_blank" : undefined}
+                    rel={info.external ? "noopener noreferrer" : undefined}
+                    className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border border-blue-900/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-105 flex items-start gap-3 sm:gap-4 block cursor-pointer active:scale-95"
                   >
-                    <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                      <InfoIcon className="w-6 h-6 text-blue-400" />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                      <InfoIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
                     </div>
                     <div className="text-left">
-                      <h3 className="text-lg font-semibold mb-2 text-white">{info.title}</h3>
-                      <p className="text-slate-400 text-sm">{info.details}</p>
+                      <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-white">{info.title}</h3>
+                      <p className="text-slate-400 text-xs sm:text-sm">{info.details}</p>
                     </div>
                   </a>
                 );
@@ -293,15 +296,16 @@ export const ContactPageNew = () => {
           </div>
 
           {/* Map Section */}
-          <div className="mt-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-white text-center">
+          <div className="mt-8 sm:mt-12 md:mt-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-white text-center px-4">
               Find Us Here
             </h2>
-            <div className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20">
+            <div className="rounded-xl sm:rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3256.8!2d-80.879444!3d35.486833!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88569d7e8e8e8e8e%3A0x8e8e8e8e8e8e8e8e!2s20830%20Torrence%20Chapel%20Rd%20Ste%20203%2C%20Cornelius%2C%20NC%2028031!5e0!3m2!1sen!2sus!4v1234567890"
                 width="100%"
-                height="450"
+                height="300"
+                className="sm:h-[400px] md:h-[450px]"
                 style={{ border: 0 }}
                 allowFullScreen=""
                 loading="eager"

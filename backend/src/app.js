@@ -17,6 +17,7 @@ import passwordChangeRoutes from './routes/passwordChangeRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 import {
   helmetConfig,
+  generalLimiter,
   sanitizeData,
   xssProtection,
   enforceHTTPS,
@@ -32,7 +33,7 @@ const app = express();
 // Connect to Supabase
 connectDB();
 
-// Trust proxy - important for getting real IPs behind proxies/load balancers
+// Trust proxy - important for rate limiting and getting real IPs behind proxies/load balancers
 app.set('trust proxy', 1);
 
 // Security Middleware (apply before other middleware)
@@ -40,40 +41,19 @@ app.use(enforceHTTPS); // Force HTTPS in production
 app.use(helmetConfig); // Security headers
 app.use(requestLogger); // Request logging
 
-// CORS Configuration - Allow Azure Static Web Apps and localhost
+// CORS Configuration - strict in production
 const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
-// Allow Azure Static Web Apps origin (can have multiple subdomains)
-const allowedOrigins = [
-  allowedOrigin,
-  'https://happy-ocean-08bd11c10.2.azurestaticapps.net', // Azure Static Web App URL
-  'http://localhost:5173', // Local development
-];
-
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
-    // Always allow Azure Static Web Apps (any subdomain)
-    if (origin.includes('.azurestaticapps.net')) {
-      return callback(null, true);
-    }
-    
-    // Always allow localhost for development
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      return callback(null, true);
-    }
-    
-    // In production, check against allowed origins list
+    // In production, strictly enforce allowed origin
     if (process.env.NODE_ENV === 'production') {
-      // Check if origin matches any allowed origin
-      const isAllowed = allowedOrigins.some(allowed => origin === allowed) ||
-                       origin === allowedOrigin;
-      
-      if (isAllowed) {
+      if (origin === allowedOrigin) {
         callback(null, true);
       } else {
-        logger.warn('Blocked CORS request from unauthorized origin', { origin, allowedOrigins });
+        logger.warn('Blocked CORS request from unauthorized origin', { origin });
         callback(new Error('Not allowed by CORS'));
       }
     } else {
@@ -96,6 +76,9 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 // Data sanitization
 app.use(sanitizeData); // NoSQL injection protection
 app.use(xssProtection); // XSS protection
+
+// General rate limiting (applied to all routes)
+app.use(generalLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);

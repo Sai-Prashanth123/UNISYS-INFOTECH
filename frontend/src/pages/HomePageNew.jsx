@@ -133,13 +133,13 @@ export const HomePageNew = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] text-white">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden rounded-b-[120px]">
+      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 md:py-20 overflow-hidden rounded-b-[60px] sm:rounded-b-[80px] md:rounded-b-[120px]">
         {/* Animated background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-blue-500/10 to-transparent"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(37,99,235,0.1),transparent_50%)]"></div>
 
-        <div className="relative max-w-7xl mx-auto text-center z-10 px-2 sm:px-4">
+        <div className="relative max-w-7xl mx-auto text-center z-10 px-2 sm:px-4 md:px-6">
           {/* Main Heading */}
           <h1 
             className="font-bold mb-6 leading-[1.15]" 
@@ -177,33 +177,33 @@ export const HomePageNew = () => {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-16 md:mb-20">
             <Link
               to="/contact"
-              className="group px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+              className="group px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2"
             >
               Contact Us
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               to="/services"
-              className="px-8 py-4 bg-[#1a2942] hover:bg-[#1f2f47] border border-blue-900/50 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+              className="px-6 sm:px-8 py-3 sm:py-4 bg-[#1a2942] hover:bg-[#1f2f47] border border-blue-900/50 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2"
             >
               Explore Our Services
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
       </section>
 
       {/* Client Logos Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-transparent via-blue-900/5 to-transparent rounded-t-[120px] -mt-20">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-gradient-to-b from-transparent via-blue-900/5 to-transparent rounded-t-[60px] sm:rounded-t-[80px] md:rounded-t-[120px] -mt-10 sm:-mt-16 md:-mt-20">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 px-4">
               Trusted by Leading Organizations
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto rounded-full"></div>
+            <div className="w-16 sm:w-20 md:w-24 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto rounded-full"></div>
           </div>
 
           {/* Client Logos Display */}
@@ -283,38 +283,38 @@ export const HomePageNew = () => {
       </section>
 
       {/* About Us Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-white">
                 About Us
               </h2>
-              <h3 className="text-2xl font-semibold text-blue-400 mb-4">UNISYS INFOTECH's Story</h3>
-              <p className="text-slate-300 mb-4 leading-relaxed">
+              <h3 className="text-xl sm:text-2xl font-semibold text-blue-400 mb-3 sm:mb-4">UNISYS INFOTECH's Story</h3>
+              <p className="text-slate-300 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">
                 Our experienced and professional team are able to help you find the right strategic solution for your business including: reshaping hierarchies, company audits, marketing, and helping you to identify ways of streamlining workflow processes.
               </p>
-              <p className="text-slate-300 mb-4 leading-relaxed">
+              <p className="text-slate-300 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">
                 Our comprehensive range of services means you can rely on and trust us to deliver a suite of effective solutions for your organisation. IT outsourcing services include application development, infrastructure and software support and maintenance.
               </p>
-              <p className="text-slate-300 mb-4 leading-relaxed">
+              <p className="text-slate-300 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">
                 When we started building software products and data services, doing what's best for our employees and customers was second nature. As we've grown to a successful and strong company, we are thankful that we have the opportunity make an even bigger impact on our customers.
               </p>
               <p className="text-slate-300 mb-6 leading-relaxed">
                 It's our privilege to forge meaningful, long-term relationship with the customers, partners and non-profit organizations that shape our vision and values. These relationships make us who we are – a united, engaged workforce that is dedicated to being a positive presence around the globe.
               </p>
               
-              <h3 className="text-2xl font-semibold text-blue-400 mb-4 mt-8">Our Services</h3>
+              <h3 className="text-xl sm:text-2xl font-semibold text-blue-400 mb-3 sm:mb-4 mt-6 sm:mt-8">Our Services</h3>
               <p className="text-slate-300 mb-6 leading-relaxed">
                 UNISYS INFOTECH brings a wide array of IT and business consulting skills and a long history of experience across many industries that allows us to expertly tailor our services and solutions to match your business or organizational needs. <span className="text-blue-400 font-semibold">On Time. On Budget. Exceeding Expectations.</span>
               </p>
               
               <Link
                 to="/contact"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all duration-300"
+                className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300"
               >
                 To Know More Contact Us
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
             </div>
             <div className="relative">
@@ -334,18 +334,18 @@ export const HomePageNew = () => {
       </section>
 
       {/* Services Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-transparent via-[#0f1d35]/50 to-transparent">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-gradient-to-b from-transparent via-[#0f1d35]/50 to-transparent">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
               What We Do
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto px-4">
               Our Best Services
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
                 icon: BarChart3,
@@ -401,13 +401,13 @@ export const HomePageNew = () => {
               <Link
                 key={idx}
                 to={feature.link || '/services'}
-                className="group p-8 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border border-blue-900/30 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 block"
+                className="group p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border border-blue-900/30 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 block"
               >
-                <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
-                  <feature.icon className="w-6 h-6 text-blue-400" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3 sm:mb-4 group-hover:bg-blue-500/20 transition-colors">
+                  <feature.icon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.shortTitle || feature.title}</h3>
-                <p className="text-slate-400 mb-4">{feature.description}</p>
+                <h3 className="text-lg sm:text-xl font-semibold mb-2">{feature.shortTitle || feature.title}</h3>
+                <p className="text-slate-400 mb-3 sm:mb-4 text-sm sm:text-base">{feature.description}</p>
                 <div className="flex items-center gap-2 text-blue-400 group-hover:gap-3 transition-all">
                   <span className="text-sm font-semibold">Learn More</span>
                   <ArrowRight className="w-4 h-4" />
@@ -419,24 +419,24 @@ export const HomePageNew = () => {
       </section>
 
       {/* Why Choose Us Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">
               Why Choose Us
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto px-4">
               We Can Give the Best Services for Business
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border border-blue-900/30">
-              <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
-                <Award className="w-6 h-6 text-blue-400" />
+          <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
+            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border border-blue-900/30">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3 sm:mb-4">
+                <Award className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
               </div>
-              <h3 className="text-xl font-semibold mb-4">Outcome-Driven Focus</h3>
-              <p className="text-slate-300 leading-relaxed">
+              <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Outcome-Driven Focus</h3>
+              <p className="text-slate-300 leading-relaxed text-sm sm:text-base">
                 It comes down to our service, outcome-driven focus, expertise, stability, and in-depth approach to understanding 
                 the technological environment and business needs of our clients so we can develop a customized plan that prioritizes their goals.
               </p>
@@ -479,33 +479,33 @@ export const HomePageNew = () => {
       </section>
 
       {/* Want to Work with Us CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-12 md:p-16">
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 sm:p-12 md:p-16">
             {/* Background decorative elements */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl"></div>
             
             <div className="relative z-10 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm mb-6">
-                <Briefcase className="w-8 h-8 text-white" />
+              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-white/20 backdrop-blur-sm mb-4 sm:mb-6">
+                <Briefcase className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
               </div>
               
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6 px-2">
                 Want to Work with Us?
               </h2>
               
-              <p className="text-lg md:text-xl text-blue-100 mb-8 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl text-blue-100 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-4">
                 Let's collaborate to transform your ideas into reality. Our team of experts is ready to help you achieve your business goals with innovative solutions.
               </p>
               
               <div className="flex justify-center">
                 <Link
                   to="/careers"
-                  className="group px-8 py-4 bg-white text-blue-700 hover:bg-blue-50 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-105"
+                  className="group px-6 sm:px-8 py-3 sm:py-4 bg-white text-blue-700 hover:bg-blue-50 rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-105"
                 >
                   See Career Opportunities
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>
@@ -516,16 +516,16 @@ export const HomePageNew = () => {
       {/* Floating Contact Us Button */}
       <Link
         to="/contact"
-        className="fixed bottom-8 right-8 z-50 group"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 z-50 group"
       >
         <div className="relative">
           {/* Pulsing ring animation */}
           <div className="absolute inset-0 bg-blue-600 rounded-full animate-ping opacity-75"></div>
           
           {/* Main button */}
-          <div className="relative flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110">
-            <MessageCircle className="w-6 h-6" />
-            <span className="font-semibold hidden sm:inline">Contact Us</span>
+          <div className="relative flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110">
+            <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="font-semibold hidden sm:inline text-sm sm:text-base">Contact Us</span>
           </div>
         </div>
       </Link>

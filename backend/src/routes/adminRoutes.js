@@ -19,7 +19,8 @@ router.post('/users/create', protect, authorize('admin'), [
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('role').isIn(['employer', 'employee']).withMessage('Role must be employer or employee'),
-  body('employerId').optional()
+  body('employerId').optional(),
+  body('clientId').optional()
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -27,7 +28,7 @@ router.post('/users/create', protect, authorize('admin'), [
   }
 
   try {
-    const { name, email, password, role, designation, department, employerId, hourlyPay } = req.body;
+    const { name, email, password, role, designation, department, employerId, hourlyPay, clientId } = req.body;
     const normalizedEmail = email.toLowerCase().trim();
 
     // Check if user exists in custom users table
@@ -55,6 +56,23 @@ router.post('/users/create', protect, authorize('admin'), [
         
       if (!employer || employer.role !== 'employer') {
         return res.status(400).json({ message: 'Invalid employer ID' });
+      }
+    }
+
+    // If clientId is provided, verify client exists
+    if (clientId) {
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id, status')
+        .eq('id', clientId)
+        .single();
+        
+      if (!client) {
+        return res.status(400).json({ message: 'Invalid client ID' });
+      }
+      
+      if (client.status !== 'active') {
+        return res.status(400).json({ message: 'Cannot assign user to an inactive client' });
       }
     }
 
@@ -96,6 +114,7 @@ router.post('/users/create', protect, authorize('admin'), [
       designation: designation?.trim() || '',
       department: department?.trim() || '',
       employer_id: role === 'employee' ? employerId : null,
+      client_id: clientId || null,
       is_active: true,
       supabase_auth_id: supabaseAuthUser?.id || null, // Link to Supabase Auth user
       hourly_pay: hourlyPay ? parseFloat(hourlyPay) : 0
@@ -104,7 +123,7 @@ router.post('/users/create', protect, authorize('admin'), [
     const { data: user, error } = await supabase
       .from('users')
       .insert(insertData)
-      .select('id, name, email, role, employer_id')
+      .select('id, name, email, role, employer_id, client_id')
       .single();
 
     if (error) {
@@ -147,7 +166,7 @@ router.get('/users', protect, authorize('admin'), async (req, res) => {
     
     let query = supabase
       .from('users')
-      .select('id, name, email, role, designation, department, employer_id, hourly_pay, is_active, created_at, updated_at');
+      .select('id, name, email, role, designation, department, employer_id, client_id, hourly_pay, is_active, created_at, updated_at');
     
     if (role) {
       query = query.eq('role', role);
@@ -162,8 +181,8 @@ router.get('/users', protect, authorize('admin'), async (req, res) => {
       return res.status(500).json({ message: 'Server error', error: error.message });
     }
 
-    // Transform user data from snake_case to camelCase and populate employer info
-    const transformUser = (user, employer = null) => ({
+    // Transform user data from snake_case to camelCase and populate employer/client info
+    const transformUser = (user, employer = null, client = null) => ({
       _id: user.id,
       id: user.id,
       name: user.name,
@@ -173,30 +192,47 @@ router.get('/users', protect, authorize('admin'), async (req, res) => {
       department: user.department,
       hourlyPay: user.hourly_pay || 0,
       employerId: employer ? { _id: employer.id, id: employer.id, name: employer.name, email: employer.email } : null,
+      clientId: client ? { _id: client.id, id: client.id, name: client.name, email: client.email } : null,
+      client: client ? { _id: client.id, id: client.id, name: client.name, email: client.email } : null,
       isActive: user.is_active !== false, // Transform is_active to isActive
       createdAt: user.created_at,
       updatedAt: user.updated_at
     });
 
-    // Populate employer information for employees
-    const usersWithEmployers = await Promise.all(
+    // Populate employer and client information
+    const usersWithRelations = await Promise.all(
       (users || []).map(async (user) => {
+        let employer = null;
+        let client = null;
+
+        // Fetch employer if exists
         if (user.employer_id) {
-          const { data: employer } = await supabase
+          const { data: empData } = await supabase
             .from('users')
             .select('id, name, email')
             .eq('id', user.employer_id)
             .single();
-          return transformUser(user, employer);
+          employer = empData || null;
         }
-        return transformUser(user, null);
+
+        // Fetch client if exists
+        if (user.client_id) {
+          const { data: clientData } = await supabase
+            .from('clients')
+            .select('id, name, email')
+            .eq('id', user.client_id)
+            .single();
+          client = clientData || null;
+        }
+
+        return transformUser(user, employer, client);
       })
     );
 
     res.status(200).json({
       success: true,
-      count: usersWithEmployers.length,
-      users: usersWithEmployers
+      count: usersWithRelations.length,
+      users: usersWithRelations
     });
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -281,7 +317,8 @@ router.put('/users/:id', protect, authorize('admin'), [
   body('name').optional().trim().notEmpty(),
   body('email').optional().isEmail(),
   body('role').optional().isIn(['employer', 'employee']),
-  body('employerId').optional()
+  body('employerId').optional(),
+  body('clientId').optional()
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -289,7 +326,7 @@ router.put('/users/:id', protect, authorize('admin'), [
   }
 
   try {
-    const { name, email, role, designation, department, employerId, hourlyPay } = req.body;
+    const { name, email, role, designation, department, employerId, hourlyPay, clientId } = req.body;
     
     // Get current user
     const { data: currentUser } = await supabase
@@ -307,6 +344,23 @@ router.put('/users/:id', protect, authorize('admin'), [
       return res.status(403).json({ message: 'Cannot modify admin users' });
     }
 
+    // If clientId is provided, verify client exists
+    if (clientId !== undefined && clientId !== null) {
+      const { data: client } = await supabase
+        .from('clients')
+        .select('id, status')
+        .eq('id', clientId)
+        .single();
+        
+      if (!client) {
+        return res.status(400).json({ message: 'Invalid client ID' });
+      }
+      
+      if (client.status !== 'active') {
+        return res.status(400).json({ message: 'Cannot assign user to an inactive client' });
+      }
+    }
+
     // Build update object
     const updateData = {};
     if (name) updateData.name = name.trim();
@@ -314,6 +368,7 @@ router.put('/users/:id', protect, authorize('admin'), [
     if (designation !== undefined) updateData.designation = designation?.trim() || '';
     if (department !== undefined) updateData.department = department?.trim() || '';
     if (hourlyPay !== undefined) updateData.hourly_pay = hourlyPay ? parseFloat(hourlyPay) : 0;
+    if (clientId !== undefined) updateData.client_id = clientId || null;
     
     if (role) {
       updateData.role = role;
@@ -331,7 +386,7 @@ router.put('/users/:id', protect, authorize('admin'), [
       .from('users')
       .update(updateData)
       .eq('id', req.params.id)
-      .select('id, name, email, role, designation, department, employer_id, hourly_pay')
+      .select('id, name, email, role, designation, department, employer_id, client_id, hourly_pay')
       .single();
 
     if (error) {
@@ -347,7 +402,8 @@ router.put('/users/:id', protect, authorize('admin'), [
         name: user.name,
         email: user.email,
         role: user.role,
-        employerId: user.employer_id
+        employerId: user.employer_id,
+        clientId: user.client_id
       }
     });
   } catch (error) {
