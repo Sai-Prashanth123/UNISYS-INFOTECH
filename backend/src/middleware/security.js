@@ -3,6 +3,17 @@ import mongoSanitize from 'express-mongo-sanitize';
 import logger from '../utils/logger.js';
 
 // NOTE: rate limiting was intentionally removed (Azure/proxy environments and app requirements).
+// Some routes still reference limiters; provide safe no-op middlewares to avoid runtime crashes.
+
+/**
+ * No-op rate limiter (rate limiting disabled)
+ */
+const noopLimiter = (req, res, next) => next();
+
+// Keep these named exports for compatibility across routes/app.
+export const generalLimiter = noopLimiter;
+export const authLimiter = noopLimiter;
+export const passwordResetLimiter = noopLimiter;
 
 /**
  * Helmet - Security headers
@@ -150,13 +161,19 @@ export const enforceHTTPS = (req, res, next) => {
  */
 export const validateCORS = (req, res, next) => {
   const origin = req.headers.origin;
-  const allowedOrigin = process.env.FRONTEND_URL;
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    ...(process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : []),
+    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : []),
+  ]
+    .map((s) => (s || '').trim())
+    .filter(Boolean);
 
   if (process.env.NODE_ENV === 'production') {
-    if (origin && allowedOrigin && !origin.includes('localhost') && origin !== allowedOrigin) {
+    if (origin && allowedOrigins.length > 0 && !origin.includes('localhost') && !allowedOrigins.includes(origin)) {
       logger.warn('Blocked request from unauthorized origin', {
         origin,
-        allowedOrigin,
+        allowedOrigins,
         ip: req.ip,
       });
     }
@@ -196,9 +213,12 @@ export const requestLogger = (req, res, next) => {
 
 export default {
   helmetConfig,
+  generalLimiter,
   sanitizeData,
   xssProtection,
   enforceHTTPS,
   validateCORS,
   requestLogger,
+  authLimiter,
+  passwordResetLimiter,
 };

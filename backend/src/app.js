@@ -42,7 +42,30 @@ app.use(helmetConfig); // Security headers
 app.use(requestLogger); // Request logging
 
 // CORS Configuration - strict in production
-const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+const parseAllowedOrigins = () => {
+  const raw = [
+    process.env.FRONTEND_URL,
+    process.env.FRONTEND_URLS, // comma-separated
+    process.env.ALLOWED_ORIGINS, // comma-separated
+  ]
+    .filter(Boolean)
+    .join(',');
+
+  const origins = raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  // Always allow localhost during dev/testing convenience
+  if (process.env.NODE_ENV !== 'production') {
+    origins.push('http://localhost:5173', 'http://localhost:3000');
+  }
+
+  // De-dupe
+  return [...new Set(origins)];
+};
+
+const allowedOrigins = parseAllowedOrigins();
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
@@ -50,10 +73,10 @@ app.use(cors({
     
     // In production, strictly enforce allowed origin
     if (process.env.NODE_ENV === 'production') {
-      if (origin === allowedOrigin) {
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        logger.warn('Blocked CORS request from unauthorized origin', { origin });
+        logger.warn('Blocked CORS request from unauthorized origin', { origin, allowedOrigins });
         callback(new Error('Not allowed by CORS'));
       }
     } else {
