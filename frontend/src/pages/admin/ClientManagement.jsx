@@ -128,6 +128,10 @@ export const ClientManagement = () => {
 
   const handleEdit = (client) => {
     const id = client._id || client.id;
+    if (!id) {
+      toast.error('Unable to edit: missing client id');
+      return;
+    }
     // Fetch full client details (includes assignedUsers) to prevent wiping assignments on edit
     clientAPI.getById(id).then((resp) => {
       const full = resp.data.client || client;
@@ -148,7 +152,13 @@ export const ClientManagement = () => {
       });
       setEditingId(id);
       setShowForm(true);
-    }).catch(() => {
+    }).catch((err) => {
+      const status = err?.response?.status;
+      if (status === 404) {
+        toast.error('Client not found. Refreshing list…');
+        fetchClients();
+        return;
+      }
       // Fallback to existing data
       setFormData({
         ...client,

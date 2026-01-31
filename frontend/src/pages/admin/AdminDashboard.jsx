@@ -151,7 +151,8 @@ export const AdminDashboard = () => {
           .limit(5),
         supabase
           .from('contact_messages')
-          .select('id, name, company, created_at, status')
+          // contact_messages table does not have "company" column
+          .select('id, name, created_at, status')
           .order('created_at', { ascending: false })
           .limit(5),
         supabase
@@ -161,7 +162,8 @@ export const AdminDashboard = () => {
           .limit(5),
         supabase
           .from('job_postings')
-          .select('id, title, created_at, status')
+          // job_postings table uses is_active, not "status"
+          .select('id, title, created_at, is_active')
           .order('created_at', { ascending: false })
           .limit(5)
       ]);
@@ -203,7 +205,7 @@ export const AdminDashboard = () => {
           activities.push({
             id: `message-${msg.id}`,
             action: 'Contact message received',
-            user: msg.company || msg.name,
+            user: msg.name,
             time: msg.created_at,
             icon: 'Mail',
             color: 'pink'
