@@ -485,64 +485,61 @@ export const ClientManagement = () => {
                 {/* Assign users + HR rate */}
                 <div className="md:col-span-2">
                   <div className="text-sm font-semibold text-slate-200 mb-2">Client Assigned Employee/Employer</div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-slate-200">Select</label>
-                      <select
-                        multiple
-                        value={formData.assignedUsers.map(a => a.userId)}
-                        onChange={(e) => {
-                          const selectedIds = Array.from(e.target.selectedOptions).map(o => o.value);
-                          const next = selectedIds.map((id) => {
-                            const existing = formData.assignedUsers.find(a => a.userId === id);
-                            return existing || { userId: id, hrRate: '' };
-                          });
-                          setFormData({ ...formData, assignedUsers: next });
-                        }}
-                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
-                        size={Math.min(8, Math.max(4, users.length))}
-                      >
-                        {users.map(u => (
-                          <option key={u.id} value={u.id} className="bg-slate-800">
-                            {u.name} ({u.role})
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-slate-500 mt-1">Hold Ctrl (Windows) to select multiple.</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-slate-200">HR Rate (per selected)</label>
-                      <div className="space-y-2">
-                        {formData.assignedUsers.length === 0 ? (
-                          <div className="text-slate-400 text-sm">No users selected</div>
-                        ) : (
-                          formData.assignedUsers.map((a) => {
-                            const u = users.find(x => x.id === a.userId);
-                            return (
-                              <div key={a.userId} className="flex items-center gap-2">
-                                <div className="flex-1 text-sm text-white truncate">
-                                  {u ? `${u.name} (${u.role})` : a.userId}
-                                </div>
+                  <div className="bg-white/10 border border-white/20 rounded-xl p-4">
+                    <div className="max-h-64 overflow-auto pr-1 space-y-2">
+                      {users.length === 0 ? (
+                        <div className="text-slate-400 text-sm">No employees/employers available</div>
+                      ) : (
+                        users.map((u) => {
+                          const checked = formData.assignedUsers.some(a => a.userId === u.id);
+                          const current = formData.assignedUsers.find(a => a.userId === u.id);
+                          return (
+                            <div key={u.id} className="flex items-center gap-3">
+                              <label className="flex items-center gap-3 flex-1 cursor-pointer select-none">
                                 <input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  value={a.hrRate}
-                                  onChange={(ev) => {
-                                    const next = formData.assignedUsers.map(x =>
-                                      x.userId === a.userId ? { ...x, hrRate: ev.target.value } : x
-                                    );
-                                    setFormData({ ...formData, assignedUsers: next });
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => {
+                                    if (checked) {
+                                      setFormData({
+                                        ...formData,
+                                        assignedUsers: formData.assignedUsers.filter(a => a.userId !== u.id)
+                                      });
+                                    } else {
+                                      setFormData({
+                                        ...formData,
+                                        assignedUsers: [...formData.assignedUsers, { userId: u.id, hrRate: '' }]
+                                      });
+                                    }
                                   }}
-                                  className="w-32 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
-                                  placeholder="Rate"
+                                  className="h-4 w-4 accent-blue-600"
                                 />
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
+                                <span className="text-sm text-white truncate">{u.name} ({u.role})</span>
+                              </label>
+
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                disabled={!checked}
+                                value={current?.hrRate ?? ''}
+                                onChange={(ev) => {
+                                  const next = formData.assignedUsers.map(x =>
+                                    x.userId === u.id ? { ...x, hrRate: ev.target.value } : x
+                                  );
+                                  setFormData({ ...formData, assignedUsers: next });
+                                }}
+                                className={`w-32 px-3 py-2 border rounded-lg text-white ${
+                                  checked
+                                    ? 'bg-white/10 border-white/20'
+                                    : 'bg-white/5 border-white/10 opacity-60 cursor-not-allowed'
+                                }`}
+                                placeholder="HR Rate"
+                              />
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
                   </div>
                 </div>

@@ -5,6 +5,43 @@ import { toast } from 'react-toastify';
 import { UserPlus, Edit2, Trash2, Power, PowerOff, Users, Briefcase, RefreshCw, Loader2, Wifi, WifiOff, Search, X, Save, UserCheck, UserX, Building2 } from 'lucide-react';
 import supabase from '../../config/supabase.js';
 
+const ClientCheckboxList = ({ clients, selectedIds, onChange }) => {
+  const toggle = (id) => {
+    if (!id) return;
+    if (selectedIds.includes(id)) {
+      onChange(selectedIds.filter(x => x !== id));
+    } else {
+      onChange([...selectedIds, id]);
+    }
+  };
+
+  return (
+    <div className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-500">
+      <div className="max-h-40 overflow-auto pr-1 space-y-2">
+        {clients.length === 0 ? (
+          <div className="text-slate-400 text-sm">No clients available</div>
+        ) : (
+          clients.map((client) => {
+            const id = client._id || client.id;
+            const checked = selectedIds.includes(id);
+            return (
+              <label key={id} className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggle(id)}
+                  className="h-4 w-4 accent-blue-600"
+                />
+                <span className="text-sm">{client.name}</span>
+              </label>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+};
+
 /**
  * Admin User Management Page
  * Create and manage Employer and Employee accounts
@@ -799,24 +836,11 @@ export const AdminUserManagement = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-2 text-slate-200">Assign Clients</label>
-                  <select
-                    multiple
-                    value={formData.clientIds}
-                    onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions).map(o => o.value);
-                      setFormData({ ...formData, clientIds: selected });
-                    }}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
-                    size={Math.min(6, Math.max(3, clients.length))}
-                  >
-                    {clients.map(client => {
-                      const cId = client._id || client.id;
-                      return (
-                        <option key={cId} value={cId} className="bg-slate-800">{client.name}</option>
-                      );
-                    })}
-                  </select>
-                  <p className="text-xs text-slate-500 mt-1">Hold Ctrl (Windows) to select multiple clients.</p>
+                  <ClientCheckboxList
+                    clients={clients}
+                    selectedIds={formData.clientIds}
+                    onChange={(ids) => setFormData({ ...formData, clientIds: ids })}
+                  />
                 </div>
 
                 <div>
@@ -967,24 +991,11 @@ export const AdminUserManagement = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-2 text-slate-200">Assign Clients</label>
-                  <select
-                    multiple
-                    value={formData.clientIds}
-                    onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions).map(o => o.value);
-                      setFormData({ ...formData, clientIds: selected });
-                    }}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
-                    size={Math.min(6, Math.max(3, clients.length))}
-                  >
-                    {clients.map(client => {
-                      const cId = client._id || client.id;
-                      return (
-                        <option key={cId} value={cId} className="bg-slate-800">{client.name}</option>
-                      );
-                    })}
-                  </select>
-                  <p className="text-xs text-slate-500 mt-1">Hold Ctrl (Windows) to select multiple clients.</p>
+                  <ClientCheckboxList
+                    clients={clients}
+                    selectedIds={formData.clientIds}
+                    onChange={(ids) => setFormData({ ...formData, clientIds: ids })}
+                  />
                 </div>
 
                 <div>
