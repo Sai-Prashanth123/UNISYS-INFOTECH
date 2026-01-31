@@ -38,10 +38,10 @@ export const AdminUserManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
+    password: 'Unisysinfotech',
     role: 'employee',
     employerId: '',
-    clientId: '',
+    clientIds: [],
     designation: '',
     department: '',
     hourlyPay: '',
@@ -175,8 +175,8 @@ export const AdminUserManagement = () => {
         payload.employerId = formData.employerId;
       }
 
-      if (formData.clientId) {
-        payload.clientId = formData.clientId;
+      if (formData.clientIds && formData.clientIds.length > 0) {
+        payload.clientIds = formData.clientIds;
       }
 
       await adminAPI.createUser(payload);
@@ -218,8 +218,8 @@ export const AdminUserManagement = () => {
         payload.employerId = formData.employerId;
       }
 
-      if (formData.clientId !== undefined) {
-        payload.clientId = formData.clientId || null;
+      if (formData.clientIds !== undefined) {
+        payload.clientIds = formData.clientIds || [];
       }
 
       await adminAPI.updateUser(editingUser._id, payload);
@@ -240,13 +240,16 @@ export const AdminUserManagement = () => {
   const openEditModal = (user) => {
     const userWithId = { ...user, _id: user._id || user.id };
     setEditingUser(userWithId);
+    const assigned = Array.isArray(user.assignedClients) ? user.assignedClients : [];
+    const assignedIds = assigned.map(c => c?._id || c?.id).filter(Boolean);
+    const legacyClientId = user.clientId?._id || user.clientId?.id || user.clientId || user.client_id || '';
     setFormData({
       name: user.name || '',
       email: user.email || '',
       password: '',
       role: user.role || 'employee',
       employerId: user.employerId?._id || user.employerId?.id || user.employerId || '',
-      clientId: user.clientId?._id || user.clientId?.id || user.clientId || user.client_id || '',
+      clientIds: assignedIds.length > 0 ? assignedIds : (legacyClientId ? [legacyClientId] : []),
       designation: user.designation || '',
       department: user.department || '',
       hourlyPay: user.hourlyPay || user.hourly_pay || '',
@@ -316,10 +319,10 @@ export const AdminUserManagement = () => {
     setFormData({
       name: '',
       email: '',
-      password: '',
+      password: 'Unisysinfotech',
       role: 'employee',
       employerId: '',
-      clientId: '',
+      clientIds: [],
       designation: '',
       department: '',
       hourlyPay: '',
@@ -607,7 +610,11 @@ export const AdminUserManagement = () => {
                         <span className="text-sm truncate block">{user.employerId?.name || '-'}</span>
                       </td>
                       <td className="px-3 sm:px-6 py-3 sm:py-4 text-white hidden sm:table-cell">
-                        <span className="text-sm truncate block">{user.clientId?.name || user.client?.name || '-'}</span>
+                        <span className="text-sm truncate block">
+                          {(Array.isArray(user.assignedClients) && user.assignedClients.length > 0)
+                            ? user.assignedClients.map(c => c?.name).filter(Boolean).join(', ')
+                            : (user.clientId?.name || user.client?.name || '-')}
+                        </span>
                       </td>
                       <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                         {(user.isActive === true || user.is_active === true) ? (
@@ -791,20 +798,25 @@ export const AdminUserManagement = () => {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-slate-200">Assign to Client</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-200">Assign Clients</label>
                   <select
-                    value={formData.clientId}
-                    onChange={(e) => setFormData({...formData, clientId: e.target.value})}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                    multiple
+                    value={formData.clientIds}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+                      setFormData({ ...formData, clientIds: selected });
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                    size={Math.min(6, Math.max(3, clients.length))}
                   >
-                    <option value="" className="bg-slate-800">No Client</option>
                     {clients.map(client => {
-                      const clientId = client._id || client.id;
+                      const cId = client._id || client.id;
                       return (
-                        <option key={clientId} value={clientId} className="bg-slate-800">{client.name}</option>
+                        <option key={cId} value={cId} className="bg-slate-800">{client.name}</option>
                       );
                     })}
                   </select>
+                  <p className="text-xs text-slate-500 mt-1">Hold Ctrl (Windows) to select multiple clients.</p>
                 </div>
 
                 <div>
@@ -954,20 +966,25 @@ export const AdminUserManagement = () => {
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-slate-200">Assign to Client</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-200">Assign Clients</label>
                   <select
-                    value={formData.clientId}
-                    onChange={(e) => setFormData({...formData, clientId: e.target.value})}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                    multiple
+                    value={formData.clientIds}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+                      setFormData({ ...formData, clientIds: selected });
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                    size={Math.min(6, Math.max(3, clients.length))}
                   >
-                    <option value="" className="bg-slate-800">No Client</option>
                     {clients.map(client => {
-                      const clientId = client._id || client.id;
+                      const cId = client._id || client.id;
                       return (
-                        <option key={clientId} value={clientId} className="bg-slate-800">{client.name}</option>
+                        <option key={cId} value={cId} className="bg-slate-800">{client.name}</option>
                       );
                     })}
                   </select>
+                  <p className="text-xs text-slate-500 mt-1">Hold Ctrl (Windows) to select multiple clients.</p>
                 </div>
 
                 <div>

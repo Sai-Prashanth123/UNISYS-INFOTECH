@@ -255,6 +255,7 @@ export const AdminReports = () => {
   // Export comprehensive employee/employer report (monthly)
   const exportEmployeeReport = async () => {
     setExporting(true);
+    const targetRole = activeTab === 'employers' ? 'employer' : 'employee';
     try {
       let timecards = [];
       
@@ -267,7 +268,6 @@ export const AdminReports = () => {
       }
 
       const reportData = [];
-      const targetRole = activeTab === 'employers' ? 'employer' : 'employee';
       
       if (filteredEmployeeData.length === 0) {
         toast.error(`No ${targetRole} data available to export`);
@@ -357,9 +357,9 @@ export const AdminReports = () => {
   // Export employee/employer summary (monthly)
   const exportEmployeeSummary = async () => {
     setExporting(true);
+    const targetRole = activeTab === 'employers' ? 'employer' : 'employee';
     try {
       let timecards = [];
-      const targetRole = activeTab === 'employers' ? 'employer' : 'employee';
       
       try {
         const { startDate, endDate } = getMonthDateRange(selectedMonth, selectedYear);

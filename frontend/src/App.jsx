@@ -63,6 +63,7 @@ import { TimecardsManagement } from './pages/admin/TimecardsManagement.jsx';
 
 // Common Pages
 import { ChangePassword } from './pages/common/ChangePassword.jsx';
+import { ForceResetPassword } from './pages/common/ForceResetPassword.jsx';
 
 // User Portal
 import UserLayout from './pages/user/UserLayout.jsx';
@@ -156,6 +157,14 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/employer/force-reset-password"
+            element={
+              <PrivateRoute requiredRole="employer">
+                <ForceResetPassword />
+              </PrivateRoute>
+            }
+          />
 
           {/* Employee Portal */}
           <Route
@@ -171,6 +180,14 @@ function App() {
             element={
               <PrivateRoute requiredRole="employee">
                 <ChangePassword />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/employee/force-reset-password"
+            element={
+              <PrivateRoute requiredRole="employee">
+                <ForceResetPassword />
               </PrivateRoute>
             }
           />

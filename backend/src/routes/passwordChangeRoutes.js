@@ -6,6 +6,21 @@ import supabase from '../config/supabase.js';
 
 const router = express.Router();
 
+const toUiRequest = (row) => ({
+  _id: row.id,
+  id: row.id,
+  status: row.status,
+  requestedAt: row.requested_at,
+  reviewedAt: row.reviewed_at || null,
+  reviewedBy: row.reviewedBy
+    ? { _id: row.reviewedBy.id, id: row.reviewedBy.id, name: row.reviewedBy.name, email: row.reviewedBy.email }
+    : null,
+  reason: row.reason || null,
+  user: row.user
+    ? { _id: row.user.id, id: row.user.id, name: row.user.name, email: row.user.email, role: row.user.role }
+    : null
+});
+
 // @route   POST /api/password-change/request
 // @desc    Request password change (All authenticated users)
 // @access  Protected
@@ -97,23 +112,23 @@ router.get('/requests', auth, async (req, res) => {
     }
 
     const { status } = req.query;
-    const filter = {};
-    
+    let query = supabase
+      .from('password_change_requests')
+      .select('id, user_id, status, requested_at, reviewed_at, reviewed_by, reason, user:user_id(id, name, email, role), reviewedBy:reviewed_by(id, name, email)')
+      .order('requested_at', { ascending: false });
+
     if (status) {
-      filter.status = status;
+      query = query.eq('status', status);
     }
 
-    const requests = await PasswordChangeRequest.find(filter)
-      .populate('userId', 'name email role')
-      .populate('reviewedBy', 'name email')
-      .sort({ requestedAt: -1 });
+    const { data, error } = await query;
+    if (error) throw error;
 
-    res.json({
+    const requests = (data || []).map(toUiRequest);
+
+    return res.json({
       success: true,
-      data: {
-        requests,
-        count: requests.length
-      }
+      data: { requests, count: requests.length }
     });
   } catch (error) {
     console.error('Get password change requests error:', error);
@@ -126,16 +141,19 @@ router.get('/requests', auth, async (req, res) => {
 // @access  Protected
 router.get('/my-requests', auth, async (req, res) => {
   try {
-    const requests = await PasswordChangeRequest.find({ userId: req.user.id })
-      .populate('reviewedBy', 'name email')
-      .sort({ requestedAt: -1 });
+    const { data, error } = await supabase
+      .from('password_change_requests')
+      .select('id, user_id, status, requested_at, reviewed_at, reviewed_by, reason, reviewedBy:reviewed_by(id, name, email)')
+      .eq('user_id', req.user.id)
+      .order('requested_at', { ascending: false });
 
-    res.json({
+    if (error) throw error;
+
+    const requests = (data || []).map((row) => toUiRequest({ ...row, user: null }));
+
+    return res.json({
       success: true,
-      data: {
-        requests,
-        count: requests.length
-      }
+      data: { requests, count: requests.length }
     });
   } catch (error) {
     console.error('Get my password change requests error:', error);
@@ -153,10 +171,13 @@ router.put('/approve/:id', auth, async (req, res) => {
       return res.status(403).json({ message: 'Access denied. Admin only.' });
     }
 
-    const request = await PasswordChangeRequest.findById(req.params.id)
-      .populate('userId', 'name email');
+    const { data: request, error: reqError } = await supabase
+      .from('password_change_requests')
+      .select('id, user_id, new_password_hash, status')
+      .eq('id', req.params.id)
+      .single();
 
-    if (!request) {
+    if (reqError || !request) {
       return res.status(404).json({ message: 'Password change request not found' });
     }
 
@@ -164,27 +185,37 @@ router.put('/approve/:id', auth, async (req, res) => {
       return res.status(400).json({ message: 'This request has already been processed' });
     }
 
-    // Update user's password
-    const user = await User.findById(request.userId._id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Update user's password in custom users table + clear must_reset_password
+    const { error: userUpdateError } = await supabase
+      .from('users')
+      .update({
+        password: request.new_password_hash,
+        must_reset_password: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', request.user_id);
 
-    user.password = request.newPasswordHash;
-    await user.save();
+    if (userUpdateError) throw userUpdateError;
 
-    // Update request status
-    request.status = 'Approved';
-    request.reviewedBy = req.user.id;
-    request.reviewedAt = new Date();
-    await request.save();
+    const now = new Date().toISOString();
+    const { data: updatedRequest, error: updErr } = await supabase
+      .from('password_change_requests')
+      .update({
+        status: 'Approved',
+        reviewed_by: req.user.id,
+        reviewed_at: now,
+        reason: null
+      })
+      .eq('id', req.params.id)
+      .select('id, user_id, status, requested_at, reviewed_at, reviewed_by, reason, user:user_id(id, name, email, role), reviewedBy:reviewed_by(id, name, email)')
+      .single();
 
-    res.json({
+    if (updErr) throw updErr;
+
+    return res.json({
       success: true,
-      message: `Password change approved for ${user.name}`,
-      data: {
-        request
-      }
+      message: 'Password change approved',
+      data: { request: toUiRequest(updatedRequest) }
     });
   } catch (error) {
     console.error('Approve password change error:', error);
@@ -214,10 +245,13 @@ router.put('/reject/:id',
 
       const { reason } = req.body;
 
-      const request = await PasswordChangeRequest.findById(req.params.id)
-        .populate('userId', 'name email');
+      const { data: request, error: reqError } = await supabase
+        .from('password_change_requests')
+        .select('id, status')
+        .eq('id', req.params.id)
+        .single();
 
-      if (!request) {
+      if (reqError || !request) {
         return res.status(404).json({ message: 'Password change request not found' });
       }
 
@@ -225,19 +259,25 @@ router.put('/reject/:id',
         return res.status(400).json({ message: 'This request has already been processed' });
       }
 
-      // Update request status
-      request.status = 'Rejected';
-      request.reviewedBy = req.user.id;
-      request.reviewedAt = new Date();
-      request.reason = reason;
-      await request.save();
+      const now = new Date().toISOString();
+      const { data: updatedRequest, error: updErr } = await supabase
+        .from('password_change_requests')
+        .update({
+          status: 'Rejected',
+          reviewed_by: req.user.id,
+          reviewed_at: now,
+          reason: reason
+        })
+        .eq('id', req.params.id)
+        .select('id, user_id, status, requested_at, reviewed_at, reviewed_by, reason, user:user_id(id, name, email, role), reviewedBy:reviewed_by(id, name, email)')
+        .single();
 
-      res.json({
+      if (updErr) throw updErr;
+
+      return res.json({
         success: true,
-        message: `Password change request rejected for ${request.userId.name}`,
-        data: {
-          request
-        }
+        message: 'Password change request rejected',
+        data: { request: toUiRequest(updatedRequest) }
       });
     } catch (error) {
       console.error('Reject password change error:', error);
@@ -251,14 +291,17 @@ router.put('/reject/:id',
 // @access  Protected
 router.delete('/cancel/:id', auth, async (req, res) => {
   try {
-    const request = await PasswordChangeRequest.findById(req.params.id);
+    const { data: request, error: reqError } = await supabase
+      .from('password_change_requests')
+      .select('id, user_id, status')
+      .eq('id', req.params.id)
+      .single();
 
-    if (!request) {
+    if (reqError || !request) {
       return res.status(404).json({ message: 'Password change request not found' });
     }
 
-    // Check if request belongs to user
-    if (request.userId.toString() !== req.user.id) {
+    if (request.user_id !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized to cancel this request' });
     }
 
@@ -266,9 +309,14 @@ router.delete('/cancel/:id', auth, async (req, res) => {
       return res.status(400).json({ message: 'Can only cancel pending requests' });
     }
 
-    await PasswordChangeRequest.findByIdAndDelete(req.params.id);
+    const { error: delErr } = await supabase
+      .from('password_change_requests')
+      .delete()
+      .eq('id', req.params.id);
 
-    res.json({
+    if (delErr) throw delErr;
+
+    return res.json({
       success: true,
       message: 'Password change request cancelled successfully'
     });

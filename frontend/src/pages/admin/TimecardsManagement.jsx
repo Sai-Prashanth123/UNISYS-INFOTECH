@@ -28,7 +28,7 @@ export const TimecardsManagement = () => {
       // Get month and year from selectedMonth (format: "2026-01")
       const [year, month] = selectedMonth.split('-');
       
-      const timecardsRes = await timeCardAPI.getMonthlySummary({
+      const timecardsRes = await timeCardAPI.getAdminMonthlySummary({
         month: parseInt(month),
         year: parseInt(year)
       });

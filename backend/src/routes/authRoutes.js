@@ -113,7 +113,8 @@ router.post('/login', authLimiter, [
         role: user.role,
         designation: user.designation || '',
         department: user.department || '',
-        employerId: user.employer_id || null
+        employerId: user.employer_id || null,
+        mustResetPassword: user.must_reset_password === true
       }
     });
   } catch (error) {
@@ -127,7 +128,7 @@ router.get('/me', protect, async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, name, email, role, designation, department, employer_id, is_active, created_at, updated_at')
+      .select('id, name, email, role, designation, department, employer_id, is_active, must_reset_password, created_at, updated_at')
       .eq('id', req.user.id)
       .single();
 
@@ -144,6 +145,7 @@ router.get('/me', protect, async (req, res) => {
       designation: user.designation || '',
       department: user.department || '',
       employerId: user.employer_id || null,
+      mustResetPassword: user.must_reset_password === true,
       isActive: user.is_active,
       createdAt: user.created_at,
       updatedAt: user.updated_at
@@ -221,12 +223,16 @@ router.post('/forgot-password', passwordResetLimiter, [
       logger.info('Using Supabase Auth for password reset', { email: user.email });
       
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const redirectUrl = `${frontendUrl}/reset-password`;
+      
+      // Log the redirect URL being used (for debugging)
+      logger.info('Password reset redirect URL', { redirectUrl, frontendUrl, envVar: process.env.FRONTEND_URL });
       
       // Use Supabase Auth to send password reset email
       const { error: authError } = await supabase.auth.resetPasswordForEmail(
         normalizedEmail,
         {
-          redirectTo: `${frontendUrl}/reset-password`
+          redirectTo: redirectUrl
         }
       );
 
@@ -488,6 +494,81 @@ router.post('/reset-password', [
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+/**
+ * CHANGE PASSWORD (Immediate)
+ * POST /api/auth/change-password
+ * Protected endpoint - updates password immediately (no admin approval)
+ * Clears must_reset_password flag on success.
+ */
+router.post('/change-password', protect, [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ message: 'New password must be different from current password' });
+    }
+
+    // Fetch user with password + auth id
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, password, supabase_auth_id')
+      .eq('id', req.user.id)
+      .single();
+
+    if (userError || !user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password + clear must_reset_password
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        password: hashedPassword,
+        must_reset_password: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      return res.status(500).json({ message: 'Failed to update password', error: updateError.message });
+    }
+
+    // Best-effort: also update Supabase Auth password if linked
+    if (user.supabase_auth_id) {
+      try {
+        await supabase.auth.admin.updateUserById(user.supabase_auth_id, { password: newPassword });
+      } catch (authErr) {
+        // Non-fatal; keep going
+        logger.warn('Failed to update Supabase Auth password (non-fatal)', { error: authErr.message, userId: user.id });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password updated successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

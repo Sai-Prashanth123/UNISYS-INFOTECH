@@ -6,6 +6,7 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data), // Now accepts selectedRole
   logout: () => api.post('/auth/logout'),
   getCurrentUser: () => api.get('/auth/me'),
+  changePassword: (data) => api.post('/auth/change-password', data),
   // Password Reset
   forgotPassword: (data) => api.post('/auth/forgot-password', data),
   verifyResetToken: (token) => api.get(`/auth/verify-reset-token/${token}`),
@@ -40,11 +41,12 @@ export const timeCardAPI = {
   getEmployerEntries: (params) => api.get('/timecards/employer/entries', { params }),
   getEmployees: () => api.get('/timecards/employer/employees'),
   getWeeklySummary: (startDate) => api.get('/timecards/employer/weekly-summary', { params: { startDate } }),
+  getMonthlySummary: (params) => api.get('/timecards/employer/monthly-summary', { params }),
   
   // Admin routes
   getAllEntries: (params) => api.get('/timecards/admin/all-entries', { params }),
   getStats: (params) => api.get('/timecards/admin/stats', { params }),
-  getMonthlySummary: (params) => api.get('/timecards/admin/monthly-summary', { params })
+  getAdminMonthlySummary: (params) => api.get('/timecards/admin/monthly-summary', { params })
 };
 
 // Client APIs

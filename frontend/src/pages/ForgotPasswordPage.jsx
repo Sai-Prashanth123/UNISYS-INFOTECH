@@ -27,8 +27,14 @@ export const ForgotPasswordPage = () => {
       // Supabase handles the email delivery automatically
       // Use environment variable for consistent redirect URL (matches Supabase Site URL)
       const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin;
+      const redirectUrl = `${frontendUrl}/reset-password`;
+      
+      // Debug logging
+      console.log('Password reset redirect URL:', redirectUrl);
+      console.log('VITE_FRONTEND_URL:', import.meta.env.VITE_FRONTEND_URL);
+      
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-        redirectTo: `${frontendUrl}/reset-password`,
+        redirectTo: redirectUrl,
       });
 
       if (resetError) {

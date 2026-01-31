@@ -5,6 +5,29 @@ import supabase from '../config/supabase.js';
 
 const router = express.Router();
 
+async function userHasClientAssignment({ userId, clientId }) {
+  // 1) New multi-client mapping table
+  const { data: assignedRows, error: assignedError } = await supabase
+    .from('user_client_assignments')
+    .select('client_id')
+    .eq('user_id', userId)
+    .eq('client_id', clientId)
+    .limit(1);
+
+  if (assignedError) throw assignedError;
+  if (assignedRows && assignedRows.length > 0) return true;
+
+  // 2) Backward compatibility: users.client_id (single client)
+  const { data: userRow, error: userError } = await supabase
+    .from('users')
+    .select('client_id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (userError && userError.code !== 'PGRST116') throw userError;
+  return Boolean(userRow?.client_id && userRow.client_id === clientId);
+}
+
 /**
  * EMPLOYEE & EMPLOYER: Submit or update hours for a specific date
  * POST /api/timecards
@@ -200,6 +223,26 @@ router.post('/', protect, authorize('employee', 'employer'), [
         success: false,
         message: 'Error validating client',
         error: clientError.message 
+      });
+    }
+
+    // Enforce "assigned clients only" for employee/employer time entry
+    try {
+      const assigned = await userHasClientAssignment({ userId, clientId });
+      if (!assigned) {
+        console.error(`[${requestId}] Client not assigned to user`, { userId, clientId });
+        return res.status(403).json({
+          success: false,
+          message: 'Client is not assigned to this user',
+          error: 'You can only log time against clients assigned to your account'
+        });
+      }
+    } catch (assignCheckError) {
+      console.error(`[${requestId}] Error checking client assignment:`, assignCheckError);
+      return res.status(500).json({
+        success: false,
+        message: 'Error validating client assignment',
+        error: assignCheckError.message
       });
     }
 
@@ -821,6 +864,107 @@ router.get('/employer/weekly-summary', protect, authorize('employer'), async (re
     });
   } catch (error) {
     console.error('Error fetching weekly summary:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+/**
+ * EMPLOYER: Get monthly summary for all employees
+ * GET /api/timecards/employer/monthly-summary?month=1&year=2026
+ * Optional: employeeId
+ */
+router.get('/employer/monthly-summary', protect, authorize('employer'), async (req, res) => {
+  try {
+    const employerId = req.user.id;
+    const { month, year, employeeId } = req.query;
+
+    const today = new Date();
+    const targetYear = year ? parseInt(year) : today.getFullYear();
+    const targetMonth = month ? parseInt(month) - 1 : today.getMonth(); // 0-based
+
+    if (isNaN(targetYear) || isNaN(targetMonth) || targetMonth < 0 || targetMonth > 11) {
+      return res.status(400).json({ message: 'Invalid month/year' });
+    }
+
+    const monthStart = new Date(targetYear, targetMonth, 1);
+    const monthEnd = new Date(targetYear, targetMonth + 1, 0);
+
+    let query = supabase
+      .from('time_cards')
+      .select('*')
+      .eq('employer_id', employerId)
+      .gte('date', monthStart.toISOString().split('T')[0])
+      .lte('date', monthEnd.toISOString().split('T')[0])
+      .order('employee_id', { ascending: true })
+      .order('date', { ascending: true });
+
+    if (employeeId) {
+      query = query.eq('employee_id', employeeId);
+    }
+
+    const { data: timeCards, error } = await query;
+    if (error) throw error;
+
+    // Fetch employee info for all unique employees
+    const uniqueEmployeeIds = [...new Set((timeCards || []).map(c => c.employee_id).filter(Boolean))];
+    const employeeMap = {};
+    await Promise.all(
+      uniqueEmployeeIds.map(async (empId) => {
+        const { data: employee } = await supabase
+          .from('users')
+          .select('id, name, email, designation')
+          .eq('id', empId)
+          .single();
+        if (employee) employeeMap[empId] = employee;
+      })
+    );
+
+    // Group by employee
+    const summary = {};
+    (timeCards || []).forEach(card => {
+      const empId = card.employee_id;
+      if (!summary[empId]) {
+        const emp = employeeMap[empId] || {};
+        summary[empId] = {
+          employee: {
+            _id: emp.id || empId,
+            id: emp.id || empId,
+            name: emp.name || 'Unknown',
+            email: emp.email || '',
+            designation: emp.designation || ''
+          },
+          entries: [],
+          totalHours: 0
+        };
+      }
+
+      const hours = parseFloat(card.hours_worked || 0);
+      summary[empId].entries.push({
+        _id: card.id,
+        id: card.id,
+        date: card.date,
+        hoursWorked: hours,
+        notes: card.notes || '',
+        isLocked: card.is_locked || false,
+        clientId: card.client_id || null
+      });
+      summary[empId].totalHours += hours;
+    });
+
+    Object.values(summary).forEach(emp => {
+      emp.totalHours = Math.round(emp.totalHours * 10) / 10;
+    });
+
+    res.status(200).json({
+      success: true,
+      monthStart: monthStart.toISOString().split('T')[0],
+      monthEnd: monthEnd.toISOString().split('T')[0],
+      month: targetMonth + 1,
+      year: targetYear,
+      summary: Object.values(summary)
+    });
+  } catch (error) {
+    console.error('Error fetching monthly summary:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

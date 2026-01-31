@@ -1,6 +1,6 @@
 import React from 'react';
 import { useThemeStore } from '../../store/index.js';
-import { clientAPI } from '../../api/endpoints.js';
+import { clientAPI, adminAPI } from '../../api/endpoints.js';
 import { toast } from 'react-toastify';
 import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 
@@ -14,22 +14,38 @@ export const ClientManagement = () => {
   const [page, setPage] = React.useState(1);
   const [showForm, setShowForm] = React.useState(false);
   const [editingId, setEditingId] = React.useState(null);
+  const [users, setUsers] = React.useState([]);
   const [formData, setFormData] = React.useState({
     name: '',
     email: '',
-    industry: '',
+    sowName: '',
+    resourceName: '',
     contactPerson: '',
     phone: '',
     address: '',
     technology: '',
     onboardingDate: '',
     offboardingDate: '',
-    status: 'active'
+    status: 'active',
+    billingRatePerHr: '',
+    share1Name: '',
+    share1HrRate: '',
+    share2Name: '',
+    share2HrRate: '',
+    share3Name: '',
+    share3HrRate: '',
+    unisysHold: '',
+    unisysShareHrRate: '',
+    assignedUsers: [] // [{ userId, hrRate }]
   });
 
   React.useEffect(() => {
     fetchClients();
   }, [search, page]);
+
+  React.useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const fetchClients = async () => {
     setLoading(true);
@@ -42,6 +58,19 @@ export const ClientManagement = () => {
       toast.error('Failed to fetch clients');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      // Admin-only endpoint; returns employers + employees + others
+      const res = await adminAPI.getUsers({});
+      const list = res.data.users || [];
+      const filtered = list.filter(u => u.role === 'employee' || u.role === 'employer');
+      setUsers(filtered);
+    } catch (e) {
+      // non-fatal
+      setUsers([]);
     }
   };
 
@@ -66,7 +95,29 @@ export const ClientManagement = () => {
       }
       setShowForm(false);
       setEditingId(null);
-      setFormData({ name: '', email: '', industry: '', contactPerson: '', phone: '', address: '', technology: '', onboardingDate: '', offboardingDate: '', status: 'active' });
+      setFormData({
+        name: '',
+        email: '',
+        sowName: '',
+        resourceName: '',
+        contactPerson: '',
+        phone: '',
+        address: '',
+        technology: '',
+        onboardingDate: '',
+        offboardingDate: '',
+        status: 'active',
+        billingRatePerHr: '',
+        share1Name: '',
+        share1HrRate: '',
+        share2Name: '',
+        share2HrRate: '',
+        share3Name: '',
+        share3HrRate: '',
+        unisysHold: '',
+        unisysShareHrRate: '',
+        assignedUsers: []
+      });
       fetchClients();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save client');
@@ -76,9 +127,47 @@ export const ClientManagement = () => {
   };
 
   const handleEdit = (client) => {
-    setFormData(client);
-    setEditingId(client._id || client.id);
-    setShowForm(true);
+    const id = client._id || client.id;
+    // Fetch full client details (includes assignedUsers) to prevent wiping assignments on edit
+    clientAPI.getById(id).then((resp) => {
+      const full = resp.data.client || client;
+      setFormData({
+        ...full,
+        sowName: full.sowName || full.industry || '',
+        resourceName: full.resourceName || '',
+        billingRatePerHr: full.billingRatePerHr ?? '',
+        share1Name: full.share1Name || '',
+        share1HrRate: full.share1HrRate ?? '',
+        share2Name: full.share2Name || '',
+        share2HrRate: full.share2HrRate ?? '',
+        share3Name: full.share3Name || '',
+        share3HrRate: full.share3HrRate ?? '',
+        unisysHold: full.unisysHold ?? '',
+        unisysShareHrRate: full.unisysShareHrRate ?? '',
+        assignedUsers: full.assignedUsers || []
+      });
+      setEditingId(id);
+      setShowForm(true);
+    }).catch(() => {
+      // Fallback to existing data
+      setFormData({
+        ...client,
+        sowName: client.sowName || client.industry || '',
+        resourceName: client.resourceName || '',
+        billingRatePerHr: client.billingRatePerHr ?? '',
+        share1Name: client.share1Name || '',
+        share1HrRate: client.share1HrRate ?? '',
+        share2Name: client.share2Name || '',
+        share2HrRate: client.share2HrRate ?? '',
+        share3Name: client.share3Name || '',
+        share3HrRate: client.share3HrRate ?? '',
+        unisysHold: client.unisysHold ?? '',
+        unisysShareHrRate: client.unisysShareHrRate ?? '',
+        assignedUsers: client.assignedUsers || []
+      });
+      setEditingId(id);
+      setShowForm(true);
+    });
   };
 
   const handleDelete = async (id) => {
@@ -105,7 +194,29 @@ export const ClientManagement = () => {
             onClick={() => {
               setShowForm(!showForm);
               setEditingId(null);
-              setFormData({ name: '', email: '', industry: '', contactPerson: '', phone: '', address: '', technology: '', onboardingDate: '', offboardingDate: '', status: 'active' });
+              setFormData({
+                name: '',
+                email: '',
+                sowName: '',
+                resourceName: '',
+                contactPerson: '',
+                phone: '',
+                address: '',
+                technology: '',
+                onboardingDate: '',
+                offboardingDate: '',
+                status: 'active',
+                billingRatePerHr: '',
+                share1Name: '',
+                share1HrRate: '',
+                share2Name: '',
+                share2HrRate: '',
+                share3Name: '',
+                share3HrRate: '',
+                unisysHold: '',
+                unisysShareHrRate: '',
+                assignedUsers: []
+              });
             }}
             className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-semibold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105 active:scale-95 min-h-[44px] w-full sm:w-auto"
           >
@@ -155,7 +266,7 @@ export const ClientManagement = () => {
             <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 text-slate-200">Client Name *</label>
+                  <label className="block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 text-slate-200">Client Name</label>
                   <input
                     type="text"
                     name="name"
@@ -166,24 +277,35 @@ export const ClientManagement = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-slate-200">Email *</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-200">Email</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-slate-200">SOW Name *</label>
+                  <input
+                    type="text"
+                    name="sowName"
+                    value={formData.sowName}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-slate-200">Industry</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-200">Resource Name *</label>
                   <input
                     type="text"
-                    name="industry"
-                    value={formData.industry}
+                    name="resourceName"
+                    value={formData.resourceName}
                     onChange={handleChange}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    required
                   />
                 </div>
                 <div>
@@ -194,6 +316,19 @@ export const ClientManagement = () => {
                     value={formData.contactPerson}
                     onChange={handleChange}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-slate-200">Client Billing Amount / Hr ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="billingRatePerHr"
+                    value={formData.billingRatePerHr}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    placeholder="e.g., 100"
                   />
                 </div>
                 <div>
@@ -246,6 +381,171 @@ export const ClientManagement = () => {
                     rows="3"
                   />
                 </div>
+                
+                {/* Shares */}
+                <div className="md:col-span-2">
+                  <div className="text-sm font-semibold text-slate-200 mb-2">Shares & HR Rates</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">Share-1 Name</label>
+                      <input
+                        type="text"
+                        name="share1Name"
+                        value={formData.share1Name}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">Share-1 HR Rate</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="share1HrRate"
+                        value={formData.share1HrRate}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">Share-2 Name</label>
+                      <input
+                        type="text"
+                        name="share2Name"
+                        value={formData.share2Name}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">Share-2 HR Rate</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="share2HrRate"
+                        value={formData.share2HrRate}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">Share-3 Name</label>
+                      <input
+                        type="text"
+                        name="share3Name"
+                        value={formData.share3Name}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">Share-3 HR Rate</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="share3HrRate"
+                        value={formData.share3HrRate}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">Unisys Hold</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="unisysHold"
+                        value={formData.unisysHold}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">Unisys Share HR Rate</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        name="unisysShareHrRate"
+                        value={formData.unisysShareHrRate}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Assign users + HR rate */}
+                <div className="md:col-span-2">
+                  <div className="text-sm font-semibold text-slate-200 mb-2">Client Assigned Employee/Employer</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">Select</label>
+                      <select
+                        multiple
+                        value={formData.assignedUsers.map(a => a.userId)}
+                        onChange={(e) => {
+                          const selectedIds = Array.from(e.target.selectedOptions).map(o => o.value);
+                          const next = selectedIds.map((id) => {
+                            const existing = formData.assignedUsers.find(a => a.userId === id);
+                            return existing || { userId: id, hrRate: '' };
+                          });
+                          setFormData({ ...formData, assignedUsers: next });
+                        }}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                        size={Math.min(8, Math.max(4, users.length))}
+                      >
+                        {users.map(u => (
+                          <option key={u.id} value={u.id} className="bg-slate-800">
+                            {u.name} ({u.role})
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-slate-500 mt-1">Hold Ctrl (Windows) to select multiple.</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-slate-200">HR Rate (per selected)</label>
+                      <div className="space-y-2">
+                        {formData.assignedUsers.length === 0 ? (
+                          <div className="text-slate-400 text-sm">No users selected</div>
+                        ) : (
+                          formData.assignedUsers.map((a) => {
+                            const u = users.find(x => x.id === a.userId);
+                            return (
+                              <div key={a.userId} className="flex items-center gap-2">
+                                <div className="flex-1 text-sm text-white truncate">
+                                  {u ? `${u.name} (${u.role})` : a.userId}
+                                </div>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={a.hrRate}
+                                  onChange={(ev) => {
+                                    const next = formData.assignedUsers.map(x =>
+                                      x.userId === a.userId ? { ...x, hrRate: ev.target.value } : x
+                                    );
+                                    setFormData({ ...formData, assignedUsers: next });
+                                  }}
+                                  className="w-32 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+                                  placeholder="Rate"
+                                />
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium mb-2 text-slate-200">Status</label>
                   <select
@@ -268,7 +568,29 @@ export const ClientManagement = () => {
                   onClick={() => {
                     setShowForm(false);
                     setEditingId(null);
-                    setFormData({ name: '', email: '', industry: '', contactPerson: '', phone: '', address: '', technology: '', onboardingDate: '', offboardingDate: '', status: 'active' });
+                    setFormData({
+                      name: '',
+                      email: '',
+                      sowName: '',
+                      resourceName: '',
+                      contactPerson: '',
+                      phone: '',
+                      address: '',
+                      technology: '',
+                      onboardingDate: '',
+                      offboardingDate: '',
+                      status: 'active',
+                      billingRatePerHr: '',
+                      share1Name: '',
+                      share1HrRate: '',
+                      share2Name: '',
+                      share2HrRate: '',
+                      share3Name: '',
+                      share3HrRate: '',
+                      unisysHold: '',
+                      unisysShareHrRate: '',
+                      assignedUsers: []
+                    });
                   }}
                   className="bg-white/10 hover:bg-white/20 text-white text-sm sm:text-base font-semibold px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-300 active:scale-95 min-h-[44px]"
                 >
@@ -291,7 +613,8 @@ export const ClientManagement = () => {
                   <tr className="border-b border-white/10">
                     <th className="text-left px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm font-semibold text-white">Name</th>
                     <th className="text-left px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm font-semibold text-white">Email</th>
-                    <th className="text-left px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm font-semibold text-white hidden md:table-cell">Industry</th>
+                    <th className="text-left px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm font-semibold text-white hidden md:table-cell">SOW Name</th>
+                    <th className="text-left px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm font-semibold text-white hidden md:table-cell">Resource</th>
                     <th className="text-left px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm font-semibold text-white hidden lg:table-cell">Contact</th>
                     <th className="text-left px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm font-semibold text-white hidden lg:table-cell">Technology</th>
                     <th className="text-left px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm font-semibold text-white hidden xl:table-cell">Onboarding</th>
@@ -307,7 +630,8 @@ export const ClientManagement = () => {
                     <tr key={clientId} className="border-b border-white/10 hover:bg-white/5 transition-colors">
                       <td className="px-3 sm:px-4 py-2 sm:py-4 font-medium text-sm sm:text-base text-white truncate max-w-[150px]">{client.name}</td>
                       <td className="px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm text-slate-200 truncate max-w-[180px]">{client.email}</td>
-                      <td className="px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm text-white hidden md:table-cell truncate max-w-[120px]">{client.industry}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm text-white hidden md:table-cell truncate max-w-[160px]">{client.sowName || client.industry}</td>
+                      <td className="px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm text-white hidden md:table-cell truncate max-w-[140px]">{client.resourceName || '-'}</td>
                       <td className="px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm text-white hidden lg:table-cell truncate max-w-[120px]">{client.contactPerson}</td>
                       <td className="px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm text-white hidden lg:table-cell truncate max-w-[120px]">{client.technology || '-'}</td>
                       <td className="px-3 sm:px-4 py-2 sm:py-4 text-xs sm:text-sm text-white hidden xl:table-cell">{client.onboardingDate ? new Date(client.onboardingDate).toLocaleDateString() : '-'}</td>

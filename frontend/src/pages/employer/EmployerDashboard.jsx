@@ -27,6 +27,12 @@ export const EmployerDashboard = () => {
   const [weeklySummary, setWeeklySummary] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [currentWeekStart, setCurrentWeekStart] = useState(getMonday(new Date()));
+  const [viewMode, setViewMode] = useState('week'); // 'week' | 'month'
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+  const [monthlySummary, setMonthlySummary] = useState([]);
   const [loading, setLoading] = useState(false);
   const [realtimeConnected, setRealtimeConnected] = useState(false);
   const subscriptionRef = useRef(null);
@@ -46,8 +52,18 @@ export const EmployerDashboard = () => {
 
   // Fetch weekly summary when week changes
   useEffect(() => {
-    fetchWeeklySummary();
-  }, [currentWeekStart, selectedEmployee]);
+    if (viewMode === 'week') {
+      fetchWeeklySummary();
+    }
+  }, [currentWeekStart, selectedEmployee, viewMode]);
+
+  // Fetch monthly summary when month changes
+  useEffect(() => {
+    if (viewMode === 'month') {
+      fetchMonthlySummary();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMonth, selectedEmployee, viewMode]);
 
   // Setup real-time subscriptions (only once on mount)
   useEffect(() => {
@@ -131,10 +147,34 @@ export const EmployerDashboard = () => {
     }
   };
 
+  const fetchMonthlySummary = async () => {
+    setLoading(true);
+    try {
+      const month = currentMonth.getMonth() + 1;
+      const year = currentMonth.getFullYear();
+      const params = { month, year };
+      if (selectedEmployee) params.employeeId = selectedEmployee;
+
+      const response = await timeCardAPI.getMonthlySummary(params);
+      setMonthlySummary(response.data.summary || []);
+    } catch (error) {
+      toast.error('Failed to fetch monthly summary');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const changeWeek = (increment) => {
     const newDate = new Date(currentWeekStart);
     newDate.setDate(newDate.getDate() + (increment * 7));
     setCurrentWeekStart(newDate);
+  };
+
+  const changeMonth = (increment) => {
+    const d = new Date(currentMonth);
+    d.setMonth(d.getMonth() + increment);
+    d.setDate(1);
+    setCurrentMonth(d);
   };
 
   // Generate week days array
@@ -154,7 +194,7 @@ export const EmployerDashboard = () => {
   // Get hours for specific employee and date
   const getHoursForDate = (employeeData, date) => {
     const entry = employeeData.entries.find(e => {
-      const entryDate = new Date(e.date);
+      const entryDate = new Date(`${String(e.date).split('T')[0]}T00:00:00`);
       return entryDate.toDateString() === date.toDateString();
     });
     return entry ? entry.hoursWorked : 0;
@@ -164,6 +204,25 @@ export const EmployerDashboard = () => {
     const endDate = new Date(currentWeekStart);
     endDate.setDate(endDate.getDate() + 6);
     return formatUSDateRange(currentWeekStart, endDate);
+  };
+
+  const formatMonthTitle = () => {
+    return currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
+  const getMonthDays = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1));
+  };
+
+  const getHoursForMonthDay = (employeeData, date) => {
+    const entry = employeeData.entries.find(e => {
+      const entryDate = new Date(`${String(e.date).split('T')[0]}T00:00:00`);
+      return entryDate.toDateString() === date.toDateString();
+    });
+    return entry ? entry.hoursWorked : 0;
   };
 
   const handleLogout = () => {
@@ -237,35 +296,83 @@ export const EmployerDashboard = () => {
         {/* Filters and Controls */}
         <div className="bg-[#1a2942]/50 backdrop-blur-sm border border-blue-900/30 rounded-xl p-6 shadow-lg mb-6">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Week Navigation */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => changeWeek(-1)}
-                className="p-2 rounded-lg hover:bg-blue-600/20 transition-colors"
-              >
-                <ChevronLeft size={24} className="text-white" />
-              </button>
-              
-              <div className="text-center">
-                <div className="font-bold text-white">
-                  {formatDateRange()}
-                </div>
-                <div className="text-sm text-slate-400">
-                  Week {(() => {
-                    const date = new Date(currentWeekStart);
-                    const startOfYear = new Date(date.getFullYear(), 0, 1);
-                    const days = Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000));
-                    return Math.ceil((days + startOfYear.getDay() + 1) / 7);
-                  })()}
-                </div>
+            {/* View Mode + Date Navigation */}
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 bg-slate-900/40 border border-blue-900/30 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('week')}
+                  className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors ${
+                    viewMode === 'week' ? 'bg-blue-600 text-white' : 'text-slate-200 hover:bg-blue-600/20'
+                  }`}
+                >
+                  Week
+                </button>
+                <button
+                  onClick={() => setViewMode('month')}
+                  className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors ${
+                    viewMode === 'month' ? 'bg-blue-600 text-white' : 'text-slate-200 hover:bg-blue-600/20'
+                  }`}
+                >
+                  Month
+                </button>
               </div>
-              
-              <button
-                onClick={() => changeWeek(1)}
-                className="p-2 rounded-lg hover:bg-blue-600/20 transition-colors"
-              >
-                <ChevronRight size={24} className="text-white" />
-              </button>
+
+              {viewMode === 'week' ? (
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => changeWeek(-1)}
+                    className="p-2 rounded-lg hover:bg-blue-600/20 transition-colors"
+                  >
+                    <ChevronLeft size={24} className="text-white" />
+                  </button>
+                  
+                  <div className="text-center">
+                    <div className="font-bold text-white">
+                      {formatDateRange()}
+                    </div>
+                    <div className="text-sm text-slate-400">
+                      Week {(() => {
+                        const date = new Date(currentWeekStart);
+                        const startOfYear = new Date(date.getFullYear(), 0, 1);
+                        const days = Math.floor((date - startOfYear) / (24 * 60 * 60 * 1000));
+                        return Math.ceil((days + startOfYear.getDay() + 1) / 7);
+                      })()}
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => changeWeek(1)}
+                    className="p-2 rounded-lg hover:bg-blue-600/20 transition-colors"
+                  >
+                    <ChevronRight size={24} className="text-white" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => changeMonth(-1)}
+                    className="p-2 rounded-lg hover:bg-blue-600/20 transition-colors"
+                  >
+                    <ChevronLeft size={24} className="text-white" />
+                  </button>
+
+                  <div className="text-center">
+                    <div className="font-bold text-white">
+                      {formatMonthTitle()}
+                    </div>
+                    <div className="text-sm text-slate-400">
+                      Entire month report
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => changeMonth(1)}
+                    className="p-2 rounded-lg hover:bg-blue-600/20 transition-colors"
+                  >
+                    <ChevronRight size={24} className="text-white" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Employee Filter */}
@@ -287,18 +394,18 @@ export const EmployerDashboard = () => {
           </div>
         </div>
 
-        {/* Weekly Grid */}
+        {/* Weekly / Monthly Grid */}
         {loading ? (
           <div className="bg-[#1a2942]/50 backdrop-blur-sm border border-blue-900/30 rounded-xl p-12 shadow-lg text-center">
             <div className="text-lg text-white">
               Loading timecard data...
             </div>
           </div>
-        ) : weeklySummary.length === 0 ? (
+        ) : (viewMode === 'week' ? weeklySummary : monthlySummary).length === 0 ? (
           <div className="bg-[#1a2942]/50 backdrop-blur-sm border border-blue-900/30 rounded-xl p-12 shadow-lg text-center">
             <Users size={48} className="mx-auto mb-4 text-slate-600" />
             <div className="text-lg text-white">
-              No timecard entries for this week
+              No timecard entries for this {viewMode === 'week' ? 'week' : 'month'}
             </div>
             <p className="mt-2 text-slate-400">
               Employees haven't submitted any hours yet
@@ -313,9 +420,9 @@ export const EmployerDashboard = () => {
                     <th className="px-6 py-4 text-left font-semibold text-white">
                       Employee
                     </th>
-                    {weekDays.map((day, idx) => (
+                    {(viewMode === 'week' ? weekDays : getMonthDays()).map((day, idx) => (
                       <th key={idx} className="px-4 py-4 text-center font-semibold text-white">
-                        <div>{dayNames[idx]}</div>
+                        <div>{viewMode === 'week' ? dayNames[idx] : day.getDate()}</div>
                         <div className="text-xs font-normal text-slate-400">
                           {day.getMonth() + 1}/{day.getDate()}
                         </div>
@@ -327,7 +434,7 @@ export const EmployerDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/50">
-                  {weeklySummary.map((empData, empIdx) => (
+                  {(viewMode === 'week' ? weeklySummary : monthlySummary).map((empData, empIdx) => (
                     <tr key={empIdx} className="hover:bg-blue-600/10 transition-colors">
                       <td className="px-6 py-4 text-white">
                         <div className="font-semibold">{empData.employee.name}</div>
@@ -335,8 +442,10 @@ export const EmployerDashboard = () => {
                           {empData.employee.designation || 'Employee'}
                         </div>
                       </td>
-                      {weekDays.map((day, dayIdx) => {
-                        const hours = getHoursForDate(empData, day);
+                      {(viewMode === 'week' ? weekDays : getMonthDays()).map((day, dayIdx) => {
+                        const hours = viewMode === 'week'
+                          ? getHoursForDate(empData, day)
+                          : getHoursForMonthDay(empData, day);
                         return (
                           <td key={dayIdx} className="px-4 py-4 text-center">
                             {hours > 0 ? (
@@ -363,9 +472,10 @@ export const EmployerDashboard = () => {
         )}
 
         {/* Summary Stats */}
-        {weeklySummary.length > 0 && (() => {
-          const totalHours = weeklySummary.reduce((sum, emp) => sum + emp.totalHours, 0);
-          const avgHours = totalHours / weeklySummary.length;
+        {((viewMode === 'week' ? weeklySummary : monthlySummary).length > 0) && (() => {
+          const data = viewMode === 'week' ? weeklySummary : monthlySummary;
+          const totalHours = data.reduce((sum, emp) => sum + emp.totalHours, 0);
+          const avgHours = totalHours / data.length;
           
           return (
             <div className="grid md:grid-cols-3 gap-6 mt-6">
@@ -373,7 +483,7 @@ export const EmployerDashboard = () => {
                 <div className="flex items-center gap-3 mb-2">
                   <Clock size={24} className="text-blue-400" />
                   <div className="text-sm text-slate-400">
-                    Total Hours This Week
+                    Total Hours This {viewMode === 'week' ? 'Week' : 'Month'}
                   </div>
                 </div>
                 <div className="text-3xl font-bold text-white">
@@ -389,7 +499,7 @@ export const EmployerDashboard = () => {
                   </div>
                 </div>
                 <div className="text-3xl font-bold text-white">
-                  {weeklySummary.length}
+                  {data.length}
                 </div>
               </div>
 

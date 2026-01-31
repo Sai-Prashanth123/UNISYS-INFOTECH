@@ -87,6 +87,23 @@ export const RoleLoginPage = () => {
 
       setToken(response.data.token);
       setUser(response.data.user);
+      
+      // Force password reset flow (first login / default password)
+      if (response.data.user.mustResetPassword) {
+        toast.info('Please reset your password to continue.');
+        if (response.data.user.role === 'employer') {
+          navigate('/employer/force-reset-password');
+        } else if (response.data.user.role === 'employee') {
+          navigate('/employee/force-reset-password');
+        } else if (response.data.user.role === 'admin') {
+          // Admin accounts typically won’t use default password, but handle anyway
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
+        return;
+      }
+
       toast.success(`Welcome back, ${response.data.user.name}!`);
       
       // Navigate based on user's actual role
