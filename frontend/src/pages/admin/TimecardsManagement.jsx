@@ -11,34 +11,93 @@ export const TimecardsManagement = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalHours: 0, totalEntries: 0, uniqueEmployees: 0 });
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterMode, setFilterMode] = useState('month'); // 'month' | 'range'
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [rangeStartDate, setRangeStartDate] = useState(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return start.toISOString().split('T')[0];
+  });
+  const [rangeEndDate, setRangeEndDate] = useState(() => {
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return end.toISOString().split('T')[0];
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
   useEffect(() => {
     fetchTimecards();
-  }, [selectedMonth]);
+  }, [selectedMonth, filterMode, rangeStartDate, rangeEndDate]);
 
   const fetchTimecards = async () => {
     setLoading(true);
     try {
-      // Get month and year from selectedMonth (format: "2026-01")
-      const [year, month] = selectedMonth.split('-');
-      
-      const timecardsRes = await timeCardAPI.getAdminMonthlySummary({
-        month: parseInt(month),
-        year: parseInt(year)
-      });
+      if (filterMode === 'month') {
+        // Get month and year from selectedMonth (format: "2026-01")
+        const [year, month] = selectedMonth.split('-');
+        
+        const timecardsRes = await timeCardAPI.getAdminMonthlySummary({
+          month: parseInt(month),
+          year: parseInt(year)
+        });
 
-      setTimecards(timecardsRes.data.timecards || []);
-      setStats({
-        totalHours: timecardsRes.data.totalHours || 0,
-        totalEntries: timecardsRes.data.count || 0,
-        uniqueEmployees: timecardsRes.data.count || 0
-      });
+        setTimecards(timecardsRes.data.timecards || []);
+        // Keep existing semantics for month mode
+        setStats({
+          totalHours: timecardsRes.data.totalHours || 0,
+          totalEntries: timecardsRes.data.count || 0,
+          uniqueEmployees: (timecardsRes.data.timecards || []).length || 0
+        });
+      } else {
+        // Custom date range mode: fetch raw entries then aggregate by employee
+        if (!rangeStartDate || !rangeEndDate) {
+          toast.error('Please select both From and To dates');
+          return;
+        }
+        if (rangeStartDate > rangeEndDate) {
+          toast.error('From date must be before To date');
+          return;
+        }
+
+        const res = await timeCardAPI.getAllEntries({ startDate: rangeStartDate, endDate: rangeEndDate });
+        const rows = res.data.timeCards || [];
+
+        const byUser = {};
+        rows.forEach((tc) => {
+          const emp = tc.employee || null;
+          const userId = emp?._id || emp?.id || tc.employeeId;
+          if (!userId) return;
+          if (!byUser[userId]) {
+            const hourlyPay = parseFloat(emp?.hourlyPay || 0) || 25;
+            byUser[userId] = {
+              userId,
+              name: emp?.name || 'Unknown',
+              email: emp?.email || '',
+              role: '', // not needed for admin summary
+              hourlyPay,
+              totalHours: 0,
+            };
+          }
+          byUser[userId].totalHours += parseFloat(tc.hoursWorked || 0);
+        });
+
+        const summary = Object.values(byUser).map(u => ({
+          ...u,
+          totalPay: (u.hourlyPay || 25) * (u.totalHours || 0),
+        })).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+        const totalHours = summary.reduce((sum, u) => sum + (u.totalHours || 0), 0);
+        setTimecards(summary);
+        setStats({
+          totalHours,
+          totalEntries: rows.length,
+          uniqueEmployees: summary.length
+        });
+      }
     } catch (error) {
       console.error('Error fetching timecards:', error);
       toast.error('Failed to fetch timecards');
@@ -64,8 +123,8 @@ export const TimecardsManagement = () => {
 
   // Export to CSV
   const exportToCSV = () => {
-    const monthName = getMonthName();
-    const headers = ['Month/Year', 'Name of the Employee', 'Working Hours', 'Hourly Pay', 'Total Pay'];
+    const periodLabel = filterMode === 'month' ? getMonthName() : `${rangeStartDate} to ${rangeEndDate}`;
+    const headers = ['Period', 'Name of the Employee', 'Working Hours', 'Hourly Pay', 'Total Pay'];
     
     const csvData = filteredTimecards.map(tc => {
       // Ensure hourly pay defaults to 25 if 0 or missing
@@ -73,7 +132,7 @@ export const TimecardsManagement = () => {
       const totalPay = hourlyPay * (tc.totalHours || 0);
       
       return [
-        monthName,
+        periodLabel,
         tc.name || 'Unknown',
         (tc.totalHours || 0).toFixed(2),
         hourlyPay.toFixed(2),
@@ -98,7 +157,9 @@ export const TimecardsManagement = () => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `monthly_timecards_${selectedMonth}.csv`;
+    link.download = filterMode === 'month'
+      ? `timecards_${selectedMonth}.csv`
+      : `timecards_${rangeStartDate}_to_${rangeEndDate}.csv`;
     link.click();
     toast.success('Monthly timecards exported successfully!');
   };
@@ -179,16 +240,61 @@ export const TimecardsManagement = () => {
         <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
-              {/* Month Selector */}
-              <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0" />
-                <input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-slate-800/50 border border-slate-600 text-white text-sm sm:text-base rounded-lg px-2 sm:px-3 py-2 flex-1 sm:flex-initial focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
-                />
+              {/* Mode toggle */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFilterMode('month')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold min-h-[44px] transition ${
+                    filterMode === 'month' ? 'bg-blue-600 text-white' : 'bg-white/10 text-slate-300 hover:bg-white/15'
+                  }`}
+                >
+                  Month
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterMode('range')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold min-h-[44px] transition ${
+                    filterMode === 'range' ? 'bg-blue-600 text-white' : 'bg-white/10 text-slate-300 hover:bg-white/15'
+                  }`}
+                >
+                  Custom Range
+                </button>
               </div>
+
+              {/* Month Selector OR From/To */}
+              {filterMode === 'month' ? (
+                <div className="flex items-center gap-2 flex-1 sm:flex-initial">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0" />
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="bg-slate-800/50 border border-slate-600 text-white text-sm sm:text-base rounded-lg px-2 sm:px-3 py-2 flex-1 sm:flex-initial focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 w-10">From</span>
+                    <input
+                      type="date"
+                      value={rangeStartDate}
+                      onChange={(e) => setRangeStartDate(e.target.value)}
+                      className="bg-slate-800/50 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 w-full min-h-[44px]"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 w-10">To</span>
+                    <input
+                      type="date"
+                      value={rangeEndDate}
+                      onChange={(e) => setRangeEndDate(e.target.value)}
+                      className="bg-slate-800/50 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 w-full min-h-[44px]"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Search */}
               <div className="relative flex-1 sm:flex-initial">
@@ -228,7 +334,7 @@ export const TimecardsManagement = () => {
         {/* Month Title */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 mb-4">
           <h2 className="text-lg sm:text-xl font-semibold text-white break-words">
-            Timecards for {getMonthName()}
+            {filterMode === 'month' ? `Timecards for ${getMonthName()}` : `Timecards for ${rangeStartDate} → ${rangeEndDate}`}
           </h2>
           <span className="text-xs sm:text-sm text-slate-400 whitespace-nowrap">
             Showing {paginatedTimecards.length} of {filteredTimecards.length} entries

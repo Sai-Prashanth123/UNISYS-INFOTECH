@@ -56,7 +56,8 @@ export const clientAPI = {
   getById: (id) => api.get(`/clients/${id}`),
   create: (data) => api.post('/clients', data),
   update: (id, data) => api.put(`/clients/${id}`, data),
-  delete: (id) => api.delete(`/clients/${id}`)
+  delete: (id) => api.delete(`/clients/${id}`),
+  uploadSow: (id, data) => api.post(`/clients/${id}/sow-upload`, data)
 };
 
 // Hours APIs

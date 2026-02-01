@@ -188,11 +188,12 @@ export const HomePageNew = () => {
                           </div>
 
                           <h1
-                            className="font-bold leading-[1.08] text-white"
+                            className="font-bold leading-[1.1] text-white"
                             style={{
                               fontFamily:
                                 "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif",
-                              fontSize: 'clamp(2.1rem, 5vw + 0.5rem, 4.8rem)',
+                              // Slightly smaller so titles don't look oversized
+                              fontSize: 'clamp(1.8rem, 3.6vw + 0.4rem, 3.6rem)',
                             }}
                           >
                             {slide.title}

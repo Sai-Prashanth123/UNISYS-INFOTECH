@@ -4,6 +4,45 @@ import { protect, authorize } from '../middleware/auth.js';
 import supabase from '../config/supabase.js';
 
 const router = express.Router();
+const SOW_BUCKET = 'client-onboarding-sows';
+
+function normalizeBase64(input) {
+  if (!input) return '';
+  // Support both raw base64 and data URLs
+  const str = String(input);
+  const commaIdx = str.indexOf(',');
+  if (str.startsWith('data:') && commaIdx !== -1) return str.slice(commaIdx + 1);
+  return str;
+}
+
+function safeFileName(name) {
+  return String(name || 'document')
+    .trim()
+    .replace(/[^\w.\- ]+/g, '')
+    .replace(/\s+/g, '_')
+    .slice(0, 120);
+}
+
+function getExt(name) {
+  const n = String(name || '').toLowerCase();
+  const idx = n.lastIndexOf('.');
+  return idx === -1 ? '' : n.slice(idx + 1);
+}
+
+function isAllowedSowType({ fileName, contentType }) {
+  const ext = getExt(fileName);
+  const allowedExt = new Set(['pdf', 'doc', 'docx']);
+  if (!allowedExt.has(ext)) return false;
+
+  // Accept common MIME types (browsers can vary). We'll still enforce ext above.
+  const ct = String(contentType || '').toLowerCase();
+  const allowedMime = new Set([
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ]);
+  return !ct || allowedMime.has(ct);
+}
 
 // Get active clients for dropdown (employees and employers)
 router.get('/active', protect, authorize('employee', 'employer', 'admin'), async (req, res) => {
@@ -194,6 +233,10 @@ const transformClient = (client) => ({
   share3HrRate: client.share_3_hr_rate,
   unisysHold: client.unisys_hold,
   unisysShareHrRate: client.unisys_share_hr_rate,
+  sowDocumentPath: client.sow_document_path,
+  sowDocumentName: client.sow_document_name,
+  sowDocumentMime: client.sow_document_mime,
+  sowDocumentUploadedAt: client.sow_document_uploaded_at,
   createdAt: client.created_at,
   updatedAt: client.updated_at
 });
@@ -227,13 +270,106 @@ router.get('/:id', protect, authorize('admin'), async (req, res) => {
       hrRate: a.hr_rate,
       user: a.user ? { _id: a.user.id, id: a.user.id, name: a.user.name, email: a.user.email, role: a.user.role } : null
     }));
+
+    // Provide a public URL if SOW exists (bucket is expected to be public)
+    let sowDocumentUrl = null;
+    if (client.sow_document_path) {
+      const { data } = supabase.storage.from(SOW_BUCKET).getPublicUrl(client.sow_document_path);
+      sowDocumentUrl = data?.publicUrl || null;
+    }
     
     res.status(200).json({
       success: true,
-      client: { ...transformClient(client), assignedUsers }
+      client: { ...transformClient(client), sowDocumentUrl, assignedUsers }
     });
   } catch (error) {
     console.error('Error fetching client:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Upload SOW document (admin only)
+// POST /api/clients/:id/sow-upload
+// Body: { fileName, contentType, base64Data }
+router.post('/:id/sow-upload', protect, authorize('admin'), async (req, res) => {
+  try {
+    const clientId = req.params.id;
+    const { fileName, contentType, base64Data } = req.body || {};
+
+    if (!fileName || !base64Data) {
+      return res.status(400).json({ message: 'fileName and base64Data are required' });
+    }
+
+    if (!isAllowedSowType({ fileName, contentType })) {
+      return res.status(400).json({ message: 'Only .pdf, .doc, .docx files are allowed' });
+    }
+
+    // Ensure client exists
+    const { data: existingClient, error: existErr } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('id', clientId)
+      .maybeSingle();
+    if (existErr) {
+      return res.status(500).json({ message: 'Server error', error: existErr.message });
+    }
+    if (!existingClient) {
+      return res.status(404).json({ message: 'Client not found' });
+    }
+
+    const base64 = normalizeBase64(base64Data);
+    const buffer = Buffer.from(base64, 'base64');
+    const maxBytes = 10 * 1024 * 1024; // 10MB
+    if (!buffer || buffer.length === 0) {
+      return res.status(400).json({ message: 'Invalid file data' });
+    }
+    if (buffer.length > maxBytes) {
+      return res.status(400).json({ message: 'File too large (max 10MB)' });
+    }
+
+    const ext = getExt(fileName);
+    const safeName = safeFileName(fileName);
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const path = `${clientId}/${ts}-${safeName || `sow.${ext}`}`;
+
+    const { error: uploadErr } = await supabase.storage
+      .from(SOW_BUCKET)
+      .upload(path, buffer, {
+        contentType: contentType || undefined,
+        upsert: true,
+      });
+
+    if (uploadErr) {
+      console.error('SOW upload error:', uploadErr);
+      return res.status(500).json({ message: 'Failed to upload SOW document', error: uploadErr.message });
+    }
+
+    // Persist metadata on client
+    const { data: updated, error: updErr } = await supabase
+      .from('clients')
+      .update({
+        sow_document_path: path,
+        sow_document_name: safeName,
+        sow_document_mime: contentType || null,
+        sow_document_uploaded_at: new Date().toISOString(),
+      })
+      .eq('id', clientId)
+      .select('*')
+      .single();
+
+    if (updErr) {
+      return res.status(500).json({ message: 'Failed to save SOW metadata', error: updErr.message });
+    }
+
+    const { data: pub } = supabase.storage.from(SOW_BUCKET).getPublicUrl(path);
+    return res.status(200).json({
+      success: true,
+      message: 'SOW document uploaded',
+      sowDocumentUrl: pub?.publicUrl || null,
+      client: transformClient(updated),
+    });
+  } catch (error) {
+    console.error('Error uploading SOW:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

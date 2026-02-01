@@ -15,6 +15,9 @@ export const ClientManagement = () => {
   const [showForm, setShowForm] = React.useState(false);
   const [editingId, setEditingId] = React.useState(null);
   const [users, setUsers] = React.useState([]);
+  const [sowFile, setSowFile] = React.useState(null); // File object
+  const [existingSowUrl, setExistingSowUrl] = React.useState(null);
+  const [existingSowName, setExistingSowName] = React.useState(null);
   const [formData, setFormData] = React.useState({
     name: '',
     email: '',
@@ -37,6 +40,13 @@ export const ClientManagement = () => {
     unisysHold: '',
     unisysShareHrRate: '',
     assignedUsers: [] // [{ userId, hrRate }]
+  });
+
+  const readFileAsBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+    reader.readAsDataURL(file);
   });
 
   React.useEffect(() => {
@@ -88,13 +98,41 @@ export const ClientManagement = () => {
     try {
       if (editingId) {
         await clientAPI.update(editingId, formData);
+        if (sowFile) {
+          const dataUrl = await readFileAsBase64(sowFile);
+          const base64Data = dataUrl.split(',')[1] || dataUrl;
+          const uploadRes = await clientAPI.uploadSow(editingId, {
+            fileName: sowFile.name,
+            contentType: sowFile.type,
+            base64Data
+          });
+          setExistingSowUrl(uploadRes.data?.sowDocumentUrl || null);
+          setExistingSowName(sowFile.name);
+          setSowFile(null);
+        }
         toast.success('Client updated successfully');
       } else {
-        await clientAPI.create(formData);
+        const created = await clientAPI.create(formData);
+        const newId = created?.data?.client?._id || created?.data?.client?.id || created?.data?.client?.clientId;
+        if (newId && sowFile) {
+          const dataUrl = await readFileAsBase64(sowFile);
+          const base64Data = dataUrl.split(',')[1] || dataUrl;
+          const uploadRes = await clientAPI.uploadSow(newId, {
+            fileName: sowFile.name,
+            contentType: sowFile.type,
+            base64Data
+          });
+          setExistingSowUrl(uploadRes.data?.sowDocumentUrl || null);
+          setExistingSowName(sowFile.name);
+          setSowFile(null);
+        }
         toast.success('Client created successfully');
       }
       setShowForm(false);
       setEditingId(null);
+      setExistingSowUrl(null);
+      setExistingSowName(null);
+      setSowFile(null);
       setFormData({
         name: '',
         email: '',
@@ -135,6 +173,9 @@ export const ClientManagement = () => {
     // Fetch full client details (includes assignedUsers) to prevent wiping assignments on edit
     clientAPI.getById(id).then((resp) => {
       const full = resp.data.client || client;
+      setExistingSowUrl(full.sowDocumentUrl || null);
+      setExistingSowName(full.sowDocumentName || full.sowDocumentPath || null);
+      setSowFile(null);
       setFormData({
         ...full,
         sowName: full.sowName || full.industry || '',
@@ -160,6 +201,9 @@ export const ClientManagement = () => {
         return;
       }
       // Fallback to existing data
+      setExistingSowUrl(null);
+      setExistingSowName(null);
+      setSowFile(null);
       setFormData({
         ...client,
         sowName: client.sowName || client.industry || '',
@@ -204,6 +248,9 @@ export const ClientManagement = () => {
             onClick={() => {
               setShowForm(!showForm);
               setEditingId(null);
+              setExistingSowUrl(null);
+              setExistingSowName(null);
+              setSowFile(null);
               setFormData({
                 name: '',
                 email: '',
@@ -306,6 +353,33 @@ export const ClientManagement = () => {
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                     required
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-slate-200">Client Onboarding SOW Upload</label>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      setSowFile(f);
+                    }}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white"
+                  />
+                  <div className="mt-2 text-xs text-slate-400">
+                    Allowed: .pdf, .doc, .docx (max 10MB)
+                  </div>
+                  {existingSowUrl && (
+                    <div className="mt-2 text-xs">
+                      <a
+                        href={existingSowUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-400 hover:text-blue-300 underline"
+                      >
+                        View current SOW{existingSowName ? ` (${existingSowName})` : ''}
+                      </a>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2 text-slate-200">Resource Name *</label>

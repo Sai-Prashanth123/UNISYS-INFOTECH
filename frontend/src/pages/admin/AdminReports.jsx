@@ -48,6 +48,17 @@ export const AdminReports = () => {
   const [selectedYear, setSelectedYear] = useState(() => {
     return new Date().getFullYear();
   });
+  const [useCustomRange, setUseCustomRange] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState(() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return startOfMonth.toISOString().split('T')[0];
+  });
+  const [customEndDate, setCustomEndDate] = useState(() => {
+    const now = new Date();
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return endOfMonth.toISOString().split('T')[0];
+  });
 
   // Helper function to get month date range
   const getMonthDateRange = useCallback((month, year) => {
@@ -58,6 +69,24 @@ export const AdminReports = () => {
       endDate: endOfMonth.toISOString().split('T')[0]
     };
   }, []);
+
+  const getExportDateRange = useCallback(() => {
+    if (!useCustomRange) return getMonthDateRange(selectedMonth, selectedYear);
+    return { startDate: customStartDate, endDate: customEndDate };
+  }, [useCustomRange, customStartDate, customEndDate, getMonthDateRange, selectedMonth, selectedYear]);
+
+  const validateCustomRange = useCallback(() => {
+    if (!useCustomRange) return true;
+    if (!customStartDate || !customEndDate) {
+      toast.error('Please select both From and To dates');
+      return false;
+    }
+    if (customStartDate > customEndDate) {
+      toast.error('From date must be before To date');
+      return false;
+    }
+    return true;
+  }, [useCustomRange, customStartDate, customEndDate]);
 
   // Fetch all reports data (filtered by month/year)
   const fetchReports = useCallback(async (showRefreshing = false) => {
@@ -96,6 +125,14 @@ export const AdminReports = () => {
       setRefreshing(false);
     }
   }, [selectedMonth, selectedYear, getMonthDateRange]);
+
+  // Keep default custom range synced to selected month (unless user is customizing)
+  useEffect(() => {
+    if (useCustomRange) return;
+    const { startDate, endDate } = getMonthDateRange(selectedMonth, selectedYear);
+    setCustomStartDate(startDate);
+    setCustomEndDate(endDate);
+  }, [useCustomRange, selectedMonth, selectedYear, getMonthDateRange]);
 
   // Fetch timecards for calculations (filtered by month/year)
   const fetchTimecards = useCallback(async () => {
@@ -257,10 +294,11 @@ export const AdminReports = () => {
     setExporting(true);
     const targetRole = activeTab === 'employers' ? 'employer' : 'employee';
     try {
+      if (!validateCustomRange()) return;
       let timecards = [];
       
       try {
-        const { startDate, endDate } = getMonthDateRange(selectedMonth, selectedYear);
+        const { startDate, endDate } = getExportDateRange();
         const timecardsRes = await timeCardAPI.getAllEntries({ startDate, endDate });
         timecards = timecardsRes.data.timeCards || [];
       } catch (tcError) {
@@ -341,11 +379,13 @@ export const AdminReports = () => {
         return;
       }
 
-      const monthName = formatUSMonthYear(new Date(selectedYear, parseInt(selectedMonth) - 1));
+      const label = useCustomRange
+        ? `${customStartDate}_to_${customEndDate}`
+        : formatUSMonthYear(new Date(selectedYear, parseInt(selectedMonth) - 1)).replace(' ', '_');
       const headers = ['Name', 'Email', 'Role', 'Department', 'Designation', 'Hourly Pay ($)', 'Reports To', 'Manager Email', 'Date', 'Hours Worked', 'Total Amount ($)', 'Project/Client', 'Notes', 'Status'];
       const csv = convertToCSV(reportData, headers);
-      downloadCSV(csv, `${targetRole}_hours_report_${monthName.replace(' ', '_')}.csv`);
-      toast.success(`${targetRole.charAt(0).toUpperCase() + targetRole.slice(1)} report for ${monthName} exported successfully! (${reportData.length} records)`);
+      downloadCSV(csv, `${targetRole}_hours_report_${label}.csv`);
+      toast.success(`${targetRole.charAt(0).toUpperCase() + targetRole.slice(1)} report exported successfully! (${reportData.length} records)`);
     } catch (error) {
       console.error('Export error:', error);
       toast.error(`Failed to export ${targetRole} report: ${error.message || 'Unknown error'}`);
@@ -359,10 +399,11 @@ export const AdminReports = () => {
     setExporting(true);
     const targetRole = activeTab === 'employers' ? 'employer' : 'employee';
     try {
+      if (!validateCustomRange()) return;
       let timecards = [];
       
       try {
-        const { startDate, endDate } = getMonthDateRange(selectedMonth, selectedYear);
+        const { startDate, endDate } = getExportDateRange();
         const timecardsRes = await timeCardAPI.getAllEntries({ startDate, endDate });
         timecards = timecardsRes.data.timeCards || [];
       } catch (tcError) {
@@ -419,11 +460,13 @@ export const AdminReports = () => {
         return;
       }
 
-      const monthName = formatUSMonthYear(new Date(selectedYear, parseInt(selectedMonth) - 1));
+      const label = useCustomRange
+        ? `${customStartDate}_to_${customEndDate}`
+        : formatUSMonthYear(new Date(selectedYear, parseInt(selectedMonth) - 1)).replace(' ', '_');
       const headers = ['Name', 'Email', 'Role', 'Department', 'Designation', 'Hourly Pay ($)', 'Reports To', 'Total Hours', 'Days Worked', 'Average Hours/Day', 'Total Amount ($)', 'Status'];
       const csv = convertToCSV(summaryData, headers);
-      downloadCSV(csv, `${targetRole}_summary_${monthName.replace(' ', '_')}.csv`);
-      toast.success(`${targetRole.charAt(0).toUpperCase() + targetRole.slice(1)} summary for ${monthName} exported successfully! (${summaryData.length} records)`);
+      downloadCSV(csv, `${targetRole}_summary_${label}.csv`);
+      toast.success(`${targetRole.charAt(0).toUpperCase() + targetRole.slice(1)} summary exported successfully! (${summaryData.length} records)`);
     } catch (error) {
       console.error('Export error:', error);
       toast.error(`Failed to export ${targetRole} summary: ${error.message || 'Unknown error'}`);
@@ -435,62 +478,101 @@ export const AdminReports = () => {
   // Export client report (monthly)
   const exportClientReport = () => {
     setExporting(true);
-    try {
-      if (clientActivity.length === 0) {
-        toast.error('No client data available to export');
-        return;
-      }
-      
-      const reportData = clientActivity.map(item => ({
-        'Client/Project': item.clientName || 'Unassigned',
-        'Total Hours': (item.totalHours || 0).toFixed(2),
-        'Number of Entries': item.count || 0,
-        'Average Hours per Entry': item.count ? ((item.totalHours || 0) / item.count).toFixed(2) : '0.00',
-        'Total Amount ($)': (item.totalAmount || 0).toFixed(2),
-        'Percentage of Total': ((item.totalHours / clientActivity.reduce((sum, c) => sum + (c.totalHours || 0), 0)) * 100).toFixed(2) + '%'
-      }));
+    (async () => {
+      try {
+        if (!validateCustomRange()) return;
 
-      const monthName = formatUSMonthYear(new Date(selectedYear, parseInt(selectedMonth) - 1));
-      const headers = ['Client/Project', 'Total Hours', 'Number of Entries', 'Average Hours per Entry', 'Total Amount ($)', 'Percentage of Total'];
-      const csv = convertToCSV(reportData, headers);
-      downloadCSV(csv, `client_report_${monthName.replace(' ', '_')}.csv`);
-      toast.success(`Client report for ${monthName} exported successfully!`);
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error('Failed to export client report');
-    } finally {
-      setExporting(false);
-    }
+        // If using custom range, compute client activity from that range
+        let activity = clientActivity;
+        if (useCustomRange) {
+          const { startDate, endDate } = getExportDateRange();
+          const timecardsRes = await timeCardAPI.getAllEntries({ startDate, endDate });
+          const rows = timecardsRes.data.timeCards || [];
+          const clientActivityMap = {};
+          rows.forEach(tc => {
+            const clientName = tc.client?.name || tc.clientName || 'Unassigned';
+            if (!clientActivityMap[clientName]) {
+              clientActivityMap[clientName] = { clientName, totalHours: 0, totalAmount: 0, count: 0 };
+            }
+            const hours = parseFloat(tc.hoursWorked || tc.hours || 0);
+            const hourlyPay = parseFloat(tc.employeeId?.hourlyPay || tc.employeeId?.hourly_pay || 0) || 25;
+            clientActivityMap[clientName].totalHours += hours;
+            clientActivityMap[clientName].totalAmount += hours * hourlyPay;
+            clientActivityMap[clientName].count += 1;
+          });
+          activity = Object.values(clientActivityMap);
+        }
+
+        if (!activity || activity.length === 0) {
+          toast.error('No client data available to export');
+          return;
+        }
+
+        const totalHoursAll = activity.reduce((sum, c) => sum + (c.totalHours || 0), 0) || 0;
+        const reportData = activity.map(item => ({
+          'Client/Project': item.clientName || 'Unassigned',
+          'Total Hours': (item.totalHours || 0).toFixed(2),
+          'Number of Entries': item.count || 0,
+          'Average Hours per Entry': item.count ? ((item.totalHours || 0) / item.count).toFixed(2) : '0.00',
+          'Total Amount ($)': (item.totalAmount || 0).toFixed(2),
+          'Percentage of Total': totalHoursAll > 0 ? (((item.totalHours || 0) / totalHoursAll) * 100).toFixed(2) + '%' : '0.00%'
+        }));
+
+        const label = useCustomRange
+          ? `${customStartDate}_to_${customEndDate}`
+          : formatUSMonthYear(new Date(selectedYear, parseInt(selectedMonth) - 1)).replace(' ', '_');
+        const headers = ['Client/Project', 'Total Hours', 'Number of Entries', 'Average Hours per Entry', 'Total Amount ($)', 'Percentage of Total'];
+        const csv = convertToCSV(reportData, headers);
+        downloadCSV(csv, `client_report_${label}.csv`);
+        toast.success('Client report exported successfully!');
+      } catch (error) {
+        console.error('Export error:', error);
+        toast.error('Failed to export client report');
+      } finally {
+        setExporting(false);
+      }
+    })();
   };
 
   // Export monthly summary
   const exportMonthlySummary = () => {
     setExporting(true);
-    try {
-      if (hoursSummary.length === 0) {
-        toast.error('No monthly data available to export');
-        return;
-      }
-      
-      const monthName = formatUSMonthYear(new Date(selectedYear, parseInt(selectedMonth) - 1));
-      const reportData = hoursSummary.map(item => ({
-        'Month': monthName,
-        'Total Hours': (item.totalHours || 0).toFixed(2),
-        'Number of Entries': item.count || 0,
-        'Total Amount ($)': (item.totalAmount || 0).toFixed(2),
-        'Average Hours per Entry': item.count ? ((item.totalHours || 0) / item.count).toFixed(2) : '0.00'
-      }));
+    (async () => {
+      try {
+        if (!validateCustomRange()) return;
 
-      const headers = ['Month', 'Total Hours', 'Number of Entries', 'Total Amount ($)', 'Average Hours per Entry'];
-      const csv = convertToCSV(reportData, headers);
-      downloadCSV(csv, `monthly_summary_${monthName.replace(' ', '_')}.csv`);
-      toast.success(`Monthly summary for ${monthName} exported successfully!`);
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error('Failed to export monthly summary');
-    } finally {
-      setExporting(false);
-    }
+        // For export, use backend hours-summary across selected range (month or custom)
+        const { startDate, endDate } = getExportDateRange();
+        const hourRes = await reportsAPI.getHoursSummary({ startDate, endDate });
+        const summary = hourRes.data.summary || [];
+
+        if (summary.length === 0) {
+          toast.error('No data available for the selected range');
+          return;
+        }
+
+        const reportData = summary.map(item => ({
+          'Month': item._id?.month || '',
+          'Total Hours': (item.totalHours || 0).toFixed(2),
+          'Number of Entries': item.count || 0,
+          'Total Amount ($)': (item.totalAmount || 0).toFixed(2),
+          'Average Hours per Entry': item.count ? ((item.totalHours || 0) / item.count).toFixed(2) : '0.00'
+        }));
+
+        const label = useCustomRange
+          ? `${customStartDate}_to_${customEndDate}`
+          : formatUSMonthYear(new Date(selectedYear, parseInt(selectedMonth) - 1)).replace(' ', '_');
+        const headers = ['Month', 'Total Hours', 'Number of Entries', 'Total Amount ($)', 'Average Hours per Entry'];
+        const csv = convertToCSV(reportData, headers);
+        downloadCSV(csv, `summary_${label}.csv`);
+        toast.success('Summary exported successfully!');
+      } catch (error) {
+        console.error('Export error:', error);
+        toast.error('Failed to export summary');
+      } finally {
+        setExporting(false);
+      }
+    })();
   };
 
   // Calculate role-specific stats
@@ -708,6 +790,62 @@ export const AdminReports = () => {
                 <FileSpreadsheet className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0" />
                 <h2 className="text-lg sm:text-xl font-bold text-white break-words">Export Reports - {activeTab === 'employees' ? 'Employees' : 'Employers'}</h2>
               </div>
+
+              {/* Date range selection for exports */}
+              <div className="mb-4 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-sm font-semibold text-white">Download Range</div>
+                    <label className="flex items-center gap-2 text-xs sm:text-sm text-slate-300 select-none">
+                      <input
+                        type="checkbox"
+                        checked={useCustomRange}
+                        onChange={(e) => setUseCustomRange(e.target.checked)}
+                        className="h-4 w-4 accent-blue-600"
+                      />
+                      Custom
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400 w-12">From</span>
+                      <input
+                        type="date"
+                        value={customStartDate}
+                        onChange={(e) => setCustomStartDate(e.target.value)}
+                        disabled={!useCustomRange}
+                        className={`w-full px-3 py-2 rounded-lg border text-sm ${
+                          useCustomRange
+                            ? 'bg-slate-800/50 border-slate-600 text-white'
+                            : 'bg-white/5 border-white/10 text-slate-500 cursor-not-allowed'
+                        }`}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400 w-12">To</span>
+                      <input
+                        type="date"
+                        value={customEndDate}
+                        onChange={(e) => setCustomEndDate(e.target.value)}
+                        disabled={!useCustomRange}
+                        className={`w-full px-3 py-2 rounded-lg border text-sm ${
+                          useCustomRange
+                            ? 'bg-slate-800/50 border-slate-600 text-white'
+                            : 'bg-white/5 border-white/10 text-slate-500 cursor-not-allowed'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-slate-400">
+                    {useCustomRange
+                      ? `Using ${customStartDate} → ${customEndDate}`
+                      : `Using ${new Date(selectedYear, parseInt(selectedMonth) - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}`}
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <button 
                   onClick={exportEmployeeReport}

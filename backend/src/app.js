@@ -92,9 +92,9 @@ app.use(cors({
 app.use(validateCORS); // Additional CORS validation
 
 // Body parser with size limits
-// Reduced from 10mb to 2mb for better security (can be increased if needed)
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+// Increased to support base64 document uploads (SOW files). Keep this as low as practical.
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Data sanitization
 app.use(sanitizeData); // NoSQL injection protection
