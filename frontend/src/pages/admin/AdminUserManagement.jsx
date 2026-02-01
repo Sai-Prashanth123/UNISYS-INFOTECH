@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useThemeStore } from '../../store/index.js';
 import { adminAPI, clientAPI } from '../../api/endpoints.js';
 import { toast } from 'react-toastify';
-import { UserPlus, Edit2, Trash2, Power, PowerOff, Users, Briefcase, RefreshCw, Loader2, Wifi, WifiOff, Search, X, Save, UserCheck, UserX, Building2 } from 'lucide-react';
+import { UserPlus, Edit2, Trash2, Power, PowerOff, Users, Briefcase, RefreshCw, Loader2, Wifi, WifiOff, Search, X, Save, UserCheck, UserX, Building2, Eye, EyeOff } from 'lucide-react';
 import supabase from '../../config/supabase.js';
 
 const ClientCheckboxList = ({ clients, selectedIds, onChange }) => {
@@ -59,6 +59,7 @@ export const AdminUserManagement = () => {
   const [employers, setEmployers] = useState([]);
   const [clients, setClients] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [filterRole, setFilterRole] = useState('');
@@ -757,6 +758,7 @@ export const AdminUserManagement = () => {
               <button
                 onClick={() => {
                   setShowCreateModal(false);
+                  setShowCreatePassword(false);
                   resetForm();
                 }}
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -791,14 +793,24 @@ export const AdminUserManagement = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-2 text-slate-200">Password *</label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                    minLength="6"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showCreatePassword ? 'text' : 'password'}
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      className="w-full px-4 pr-12 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                      minLength="6"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCreatePassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
+                      aria-label={showCreatePassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showCreatePassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div>
@@ -904,6 +916,7 @@ export const AdminUserManagement = () => {
                   type="button"
                   onClick={() => {
                     setShowCreateModal(false);
+                    setShowCreatePassword(false);
                     resetForm();
                   }}
                   disabled={saving}
