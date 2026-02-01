@@ -12,80 +12,78 @@ export const HomePageNew = () => {
   const isDark = useThemeStore((state) => state.isDark);
   const [clientLogos, setClientLogos] = useState([]);
   const [logosLoading, setLogosLoading] = useState(true);
-  const [activeServiceIndex, setActiveServiceIndex] = useState(0);
-  const [rotatingWord, setRotatingWord] = useState(0);
-  
-  // Rotating words for heading
-  const words = ['Success', 'Revenue', 'Growth'];
+  const [heroSlideIndex, setHeroSlideIndex] = useState(0);
+  const heroPointerStartX = React.useRef(null);
 
-  // Services for animation
-  const services = [
-    { 
-      icon: Code, 
-      name: 'Software Development', 
-      description: 'Software Development services is your possibility to outsource software engineering and support, and get maintainable, secure and impactful software at the best price.',
-      color: 'text-blue-400', 
-      bgColor: 'bg-blue-500/10' 
+  // Hero carousel slides (background + "logo"/icon + CTA)
+  const heroSlides = [
+    {
+      key: 'cloud',
+      title: 'Cloud Services',
+      subtitle: 'Modernize, migrate, and optimize across multi-cloud with secure, scalable architecture.',
+      icon: Cloud,
+      accent: 'text-cyan-300',
+      cta: { label: 'Explore Cloud', to: '/services/cloud-services' },
+      backgroundImage:
+        'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=1920&h=1080&fit=crop&auto=format&q=80',
     },
-    { 
-      icon: Shield, 
-      name: 'QA Automation', 
-      description: 'Comprehensive quality assurance and automated testing services to ensure your software meets the highest standards of quality and reliability.',
-      color: 'text-green-400', 
-      bgColor: 'bg-green-500/10' 
+    {
+      key: 'outsourcing',
+      title: 'IT Outsourcing Services',
+      subtitle: 'Extend your team with proven delivery, measurable outcomes, and reliable support.',
+      icon: Briefcase,
+      accent: 'text-indigo-300',
+      cta: { label: 'Explore Professional', to: '/services/professional' },
+      backgroundImage:
+        'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1920&h=1080&fit=crop&auto=format&q=80',
     },
-    { 
-      icon: GitBranch, 
-      name: 'DevOps', 
-      description: 'DevOps is a set of practices, tools, and a cultural philosophy that automate and integrate the processes between software development and IT teams.',
-      color: 'text-purple-400', 
-      bgColor: 'bg-purple-500/10' 
+    {
+      key: 'software',
+      title: 'Software Development',
+      subtitle: 'Build maintainable, secure, high-impact software—delivered on time and on budget.',
+      icon: Code,
+      accent: 'text-blue-300',
+      cta: { label: 'Explore Development', to: '/services/software-development' },
+      backgroundImage:
+        'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=1920&h=1080&fit=crop&auto=format&q=80',
     },
-    { 
-      icon: Cloud, 
-      name: 'Cloud Services', 
-      description: 'Scalable cloud infrastructure solutions that help you deploy, manage, and optimize your applications across multiple cloud platforms.',
-      color: 'text-cyan-400', 
-      bgColor: 'bg-cyan-500/10' 
+    {
+      key: 'devops',
+      title: 'DevOps',
+      subtitle: 'Automate CI/CD, improve reliability, and ship faster with modern DevOps practices.',
+      icon: GitBranch,
+      accent: 'text-purple-300',
+      cta: { label: 'Explore DevOps', to: '/services/devops' },
+      backgroundImage:
+        'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&h=1080&fit=crop&auto=format&q=80',
     },
-    { 
-      icon: Database, 
-      name: 'Database Administration', 
-      description: 'Expert database management, optimization, and maintenance services to ensure your data infrastructure runs smoothly and efficiently.',
-      color: 'text-orange-400', 
-      bgColor: 'bg-orange-500/10' 
+    {
+      key: 'data',
+      title: 'Data & Analytics',
+      subtitle: 'Turn data into decisions with BI and data science solutions tailored to your business.',
+      icon: BarChart3,
+      accent: 'text-emerald-300',
+      cta: { label: 'Explore BI', to: '/services/business-intelligence' },
+      backgroundImage:
+        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1920&h=1080&fit=crop&auto=format&q=80',
     },
-    { 
-      icon: Target, 
-      name: 'CRM', 
-      description: 'CRM (customer relationship management) software tracks and manages customer relationships. It records interactions between a business, its prospects, and its existing customers.',
-      color: 'text-pink-400', 
-      bgColor: 'bg-pink-500/10' 
-    },
-    { 
-      icon: Brain, 
-      name: 'Data Science', 
-      description: 'Build expertise in data manipulation, visualization, predictive analytics, machine learning, and data science to launch or advance a successful data career.',
-      color: 'text-indigo-400', 
-      bgColor: 'bg-indigo-500/10' 
-    }
   ];
 
-  // Animate services rotation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveServiceIndex((prev) => (prev + 1) % services.length);
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [services.length]);
+  const goToHeroSlide = (idx) => {
+    const next = ((idx % heroSlides.length) + heroSlides.length) % heroSlides.length;
+    setHeroSlideIndex(next);
+  };
 
-  // Animate rotating words every 2 seconds
+  const goPrevHeroSlide = () => goToHeroSlide(heroSlideIndex - 1);
+  const goNextHeroSlide = () => goToHeroSlide(heroSlideIndex + 1);
+
+  // Auto-advance hero slides
   useEffect(() => {
     const interval = setInterval(() => {
-      setRotatingWord((prev) => (prev + 1) % words.length);
-    }, 2000);
+      setHeroSlideIndex((prev) => (prev + 1) % heroSlides.length);
+    }, 5500);
     return () => clearInterval(interval);
-  }, [words.length]);
+  }, [heroSlides.length]);
 
   // Preload images for faster display
   const preloadImages = (imageUrls) => {
@@ -112,10 +110,11 @@ export const HomePageNew = () => {
         setClientLogos(logos);
         
         // Preload all logo images immediately for instant display
-        if (logos.length > 0) {
-          const imageUrls = logos.map(logo => logo.logoUrl).filter(Boolean);
-          preloadImages(imageUrls);
-        }
+        const imageUrls = [
+          ...heroSlides.map((s) => s.backgroundImage).filter(Boolean),
+          ...logos.map((logo) => logo.logoUrl).filter(Boolean),
+        ];
+        if (imageUrls.length > 0) preloadImages(imageUrls);
       } catch (error) {
         if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
           console.warn('Backend server is not running. Client logos will not be displayed.');
@@ -133,65 +132,148 @@ export const HomePageNew = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0f1d35] to-[#0a1628] text-white">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 md:py-20 overflow-hidden rounded-b-[60px] sm:rounded-b-[80px] md:rounded-b-[120px]">
-        {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-blue-500/10 to-transparent"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(37,99,235,0.1),transparent_50%)]"></div>
-
-        <div className="relative max-w-7xl mx-auto text-center z-10 px-2 sm:px-4 md:px-6">
-          {/* Main Heading */}
-          <h1 
-            className="font-bold mb-6 leading-[1.15]" 
-            style={{ 
-              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif",
-              fontSize: 'clamp(2rem, 6vw + 0.5rem, 5rem)'
-            }}
+      <section
+        className="relative min-h-[85vh] sm:min-h-screen flex items-center justify-center px-4 sm:px-6 py-10 sm:py-14 md:py-20 overflow-hidden rounded-b-[60px] sm:rounded-b-[80px] md:rounded-b-[120px]"
+        aria-label="Homepage hero carousel"
+      >
+        {/* Slides rail */}
+        <div
+          className="absolute inset-0"
+          onPointerDown={(e) => {
+            heroPointerStartX.current = e.clientX;
+          }}
+          onPointerUp={(e) => {
+            if (heroPointerStartX.current === null) return;
+            const delta = e.clientX - heroPointerStartX.current;
+            heroPointerStartX.current = null;
+            if (Math.abs(delta) < 60) return;
+            if (delta > 0) goPrevHeroSlide();
+            else goNextHeroSlide();
+          }}
+          onPointerCancel={() => {
+            heroPointerStartX.current = null;
+          }}
+        >
+          <div
+            className="h-full w-full flex transition-transform duration-700 ease-out"
+            style={{ transform: `translateX(-${heroSlideIndex * 100}%)` }}
           >
-            <span className="text-white animate-fade-in-up opacity-0 block" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
-              Empowering Your Business with
-            </span>
-            <span className="text-slate-400 animate-fade-in-up opacity-0 block mt-2" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
-              Real-time Solutions for
-            </span>
-            <span className="animate-fade-in-up opacity-0 block mt-2" style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
-              <span 
-                key={rotatingWord}
-                className="text-blue-400 inline-block animate-word-fade font-bold"
-                style={{ 
-                  minWidth: 'clamp(100px, 18vw, 220px)',
-                  fontSize: 'clamp(2rem, 6vw + 0.5rem, 5rem)'
-                }}
-              >
-                {words[rotatingWord]}
-              </span>
-            </span>
-          </h1>
+            {heroSlides.map((slide) => {
+              const Icon = slide.icon;
+              return (
+                <div
+                  key={slide.key}
+                  className="relative w-full flex-shrink-0"
+                  style={{
+                    backgroundImage: `url('${slide.backgroundImage}')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                >
+                  {/* Dark overlay + branded gradients for readability */}
+                  <div className="absolute inset-0 bg-black/60"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/35 via-[#0f1d35]/35 to-transparent"></div>
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.18),transparent_55%)]"></div>
 
-          {/* Subheading */}
-          <p 
-            className="text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed"
-            style={{ fontSize: 'clamp(1.1rem, 2vw + 0.4rem, 1.5rem)' }}
-          >
-            Empower your team with an all-in-one solution designed to streamline workflows, boost collaboration, and drive productivity.
-          </p>
+                  <div className="relative z-10 h-full flex items-center">
+                    <div className="max-w-7xl mx-auto w-full px-2 sm:px-4 md:px-6">
+                      <div className="grid lg:grid-cols-12 gap-8 items-center">
+                        {/* Left: copy */}
+                        <div className="lg:col-span-7 text-left">
+                          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 mb-5">
+                            <Icon className={`w-5 h-5 ${slide.accent}`} />
+                            <span className="text-xs sm:text-sm font-semibold text-white/90">
+                              Our Services
+                            </span>
+                          </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-16 md:mb-20">
-            <Link
-              to="/contact"
-              className="group px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+                          <h1
+                            className="font-bold leading-[1.08] text-white"
+                            style={{
+                              fontFamily:
+                                "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif",
+                              fontSize: 'clamp(2.1rem, 5vw + 0.5rem, 4.8rem)',
+                            }}
+                          >
+                            {slide.title}
+                          </h1>
+                          <p
+                            className="mt-4 text-slate-200 max-w-2xl leading-relaxed"
+                            style={{ fontSize: 'clamp(1.05rem, 1.2vw + 0.5rem, 1.4rem)' }}
+                          >
+                            {slide.subtitle}
+                          </p>
+
+                          <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                            <Link
+                              to={slide.cta.to}
+                              className="group px-6 sm:px-8 py-3.5 sm:py-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/30"
+                            >
+                              {slide.cta.label}
+                              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                            <Link
+                              to="/contact"
+                              className="px-6 sm:px-8 py-3.5 sm:py-4 bg-white/10 hover:bg-white/15 border border-white/20 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+                            >
+                              Contact Us
+                              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* Right: big “logo” */}
+                        <div className="lg:col-span-5 hidden lg:flex justify-center">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full"></div>
+                            <div className="relative w-44 h-44 xl:w-56 xl:h-56 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
+                              <Icon className={`w-20 h-20 xl:w-28 xl:h-28 ${slide.accent}`} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="absolute inset-x-0 bottom-6 sm:bottom-8 z-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={goPrevHeroSlide}
+              className="h-11 w-11 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 backdrop-blur-sm flex items-center justify-center transition-all active:scale-95"
+              aria-label="Previous slide"
             >
-              Contact Us
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              to="/services"
-              className="px-6 sm:px-8 py-3 sm:py-4 bg-[#1a2942] hover:bg-[#1f2f47] border border-blue-900/50 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+              <ChevronRight className="w-5 h-5 rotate-180 text-white" />
+            </button>
+
+            <div className="flex items-center gap-2">
+              {heroSlides.map((s, idx) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => goToHeroSlide(idx)}
+                  className={`h-2.5 rounded-full transition-all ${
+                    idx === heroSlideIndex ? 'w-10 bg-blue-400' : 'w-2.5 bg-white/40 hover:bg-white/60'
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={goNextHeroSlide}
+              className="h-11 w-11 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 backdrop-blur-sm flex items-center justify-center transition-all active:scale-95"
+              aria-label="Next slide"
             >
-              Explore Our Services
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+              <ChevronRight className="w-5 h-5 text-white" />
+            </button>
           </div>
         </div>
       </section>

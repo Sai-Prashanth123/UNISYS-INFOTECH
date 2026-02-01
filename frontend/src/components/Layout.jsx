@@ -10,7 +10,7 @@ export const Layout = () => {
   return (
     <div className={isDark ? 'dark' : ''}>
       <Navbar />
-      <main className={`${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'} pt-14 sm:pt-16`}>
+      <main className={`${isDark ? 'bg-gray-950 text-white' : 'bg-white text-gray-900'} pt-16 sm:pt-20`}>
         <Outlet />
       </main>
       <Footer />

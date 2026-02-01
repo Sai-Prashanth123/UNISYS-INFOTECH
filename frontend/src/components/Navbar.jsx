@@ -44,14 +44,17 @@ export const Navbar = () => {
       <div className="absolute inset-0 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-lg transition-all duration-300"></div>
       
       <div className="relative max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14 sm:h-16">
+        <div className="flex justify-between items-center h-16 sm:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2.5 group relative z-10">
-            <img 
-              src="/logo.png" 
-              alt="UNISYS INFOTECH" 
-              className="h-12 sm:h-16 md:h-20 lg:h-24 w-auto group-hover:scale-105 transition-transform duration-300"
-            />
+            {/* logo.png has large empty padding; crop/zoom via CSS */}
+            <div className="h-16 sm:h-20 flex items-center overflow-hidden">
+              <img 
+                src="/logo.png" 
+                alt="UNISYS INFOTECH" 
+                className="h-full w-auto max-w-[560px] object-contain object-bottom scale-[2.7] -translate-y-2 group-hover:scale-[2.85] transition-transform duration-300"
+              />
+            </div>
           </Link>
 
           {/* Desktop Menu - Centered */}
