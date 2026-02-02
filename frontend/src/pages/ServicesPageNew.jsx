@@ -117,7 +117,7 @@ export const ServicesPageNew = () => {
               <div className="sticky top-20 sm:top-24">
                 <div className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20">
                   <img 
-                    src="/unisysinfotechservicespage.png" 
+                    src="/our-services.png" 
                     alt="UNISYS INFOTECH Services"
                     loading="lazy"
                     className="w-full h-full object-cover"

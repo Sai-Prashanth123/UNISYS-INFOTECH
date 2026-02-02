@@ -53,8 +53,8 @@ export const AboutPageNew = () => {
             <div className="relative">
               <div className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20">
                 <img 
-                  src="/unysisinotechoffice.png" 
-                  alt="UNISYS INFOTECH Office"
+                  src="/about-office-receptio.png" 
+                  alt="UNISYS INFOTECH Office Reception"
                   loading="lazy"
                   className="w-full h-full object-cover"
                 />
