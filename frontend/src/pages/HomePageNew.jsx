@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useThemeStore } from '../store/index.js';
 import { clientLogosApi } from '../api/endpoints.js';
+import aboutOfficeReception from '../assets/about-office-reception.jpeg';
 import { 
   ArrowRight, CheckCircle2, Star, Users, TrendingUp, Shield, 
   Zap, Globe, BarChart3, Clock, Award, ChevronRight, Play, Code, 
@@ -59,11 +60,11 @@ export const HomePageNew = () => {
     },
     {
       key: 'data',
-      title: 'Data & Analytics',
-      subtitle: 'Turn data into decisions with BI and data science solutions tailored to your business.',
+      title: 'Data Science',
+      subtitle: 'Unlock insights from your data with machine learning, predictive analytics, and AI-powered solutions.',
       icon: BarChart3,
       accent: 'text-emerald-300',
-      cta: { label: 'Explore BI', to: '/services/business-intelligence' },
+      cta: { label: 'Explore Data Science', to: '/services/data-science' },
       backgroundImage:
         'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1920&h=1080&fit=crop&auto=format&q=80',
     },
@@ -403,8 +404,8 @@ export const HomePageNew = () => {
             <div className="relative">
               <div className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20">
                 <img 
-                  src="/unysisinotechoffice.png" 
-                  alt="UNISYS INFOTECH Office"
+                  src={aboutOfficeReception}
+                  alt="UNISYS INFOTECH Office Reception"
                   loading="eager"
                   fetchPriority="high"
                   decoding="async"
