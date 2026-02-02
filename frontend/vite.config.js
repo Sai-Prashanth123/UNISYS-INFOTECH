@@ -20,9 +20,9 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            if (id.includes('react-dom')) return 'react-dom'
-            if (id.includes('react')) return 'react'
-            if (id.includes('react-router')) return 'react-router'
+            // Keep react, react-dom, react-router in one chunk so there's a single React instance (avoids "Cannot read properties of undefined (reading 'useState')")
+            const isReact = id.includes('react-dom') || id.includes('react-router') || (id.includes('react') && !id.includes('react-dom') && !id.includes('react-router'))
+            if (isReact) return 'react-vendor'
             if (id.includes('recharts')) return 'recharts'
             if (id.includes('@supabase')) return 'supabase'
             if (id.includes('lucide-react')) return 'lucide'
