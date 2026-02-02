@@ -20,9 +20,10 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Keep react, react-dom, react-router in one chunk so there's a single React instance
-            // Must check for exact package boundaries to avoid splitting React
-            if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/react-router') || id.includes('\\react\\') || id.includes('\\react-dom\\') || id.includes('\\react-router')) {
+            // Bundle ALL React-related packages together to prevent multiple React instances
+            // This includes react, react-dom, react-router, and any package that starts with 'react-'
+            if (id.match(/[\\/]node_modules[\\/](react|react-dom|react-router|scheduler|@remix-run)[\\/]/) || 
+                id.match(/[\\/]node_modules[\\/]react-[^/\\]+[\\/]/)) {
               return 'react-vendor'
             }
             if (id.includes('recharts')) return 'recharts'
