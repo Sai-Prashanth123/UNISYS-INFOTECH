@@ -16,14 +16,11 @@ export const Footer = () => {
           {/* Company Info */}
           <div className="animate-slide-up">
             <div className="mb-4">
-              {/* logo.png has large empty padding; crop/zoom via CSS */}
-              <div className="h-24 sm:h-28 md:h-32 overflow-hidden">
-                <img 
-                  src="/logo.png" 
-                  alt="UNISYS INFOTECH" 
-                  className="h-44 sm:h-52 w-auto max-w-[520px] object-contain object-bottom scale-[1.9] translate-y-5"
-                />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="UNISYS INFOTECH" 
+                className="h-12 sm:h-14 w-auto max-w-[240px] object-contain object-left"
+              />
             </div>
             <p className="text-gray-400 mb-4">
               Leading IT solutions provider transforming businesses through innovative technology and expert consulting.

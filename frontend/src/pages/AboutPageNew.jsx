@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users } from 'lucide-react';
+import aboutOfficeReception from '../assets/about-office-reception.jpeg';
 
 export const AboutPageNew = () => {
   return (
@@ -49,14 +50,14 @@ export const AboutPageNew = () => {
               </div>
             </div>
 
-            {/* Right Image/Visual */}
+            {/* Right Image - full image visible (from public/about-office-reception.jpeg, bundled via assets) */}
             <div className="relative">
-              <div className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20">
+              <div className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20 bg-slate-800/30">
                 <img 
-                  src="/about-office-receptio.png" 
+                  src={aboutOfficeReception} 
                   alt="UNISYS INFOTECH Office Reception"
                   loading="lazy"
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto object-contain"
                 />
               </div>
             </div>

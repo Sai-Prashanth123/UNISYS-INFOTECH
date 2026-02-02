@@ -13,5 +13,25 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+  },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom')) return 'react-dom'
+            if (id.includes('react')) return 'react'
+            if (id.includes('react-router')) return 'react-router'
+            if (id.includes('recharts')) return 'recharts'
+            if (id.includes('@supabase')) return 'supabase'
+            if (id.includes('lucide-react')) return 'lucide'
+            if (id.includes('axios')) return 'axios'
+            if (id.includes('zustand')) return 'zustand'
+            return 'vendor'
+          }
+        }
+      }
+    }
   }
 })

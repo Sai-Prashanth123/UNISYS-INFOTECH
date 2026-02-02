@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Code, Shield, GitBranch, Cloud, Database, Target, Brain, BarChart3, Briefcase } from 'lucide-react';
+import ourServicesImage from '../assets/our-services.jpeg';
 
 export const ServicesPageNew = () => {
   const services = [
@@ -112,15 +113,15 @@ export const ServicesPageNew = () => {
       <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
-            {/* Left Side - Services Image */}
+            {/* Left Side - Our Services image, full visible (from public/our-services.jpeg, bundled via assets) */}
             <div className="lg:col-span-1 mb-8 lg:mb-0">
               <div className="sticky top-20 sm:top-24">
-                <div className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20">
+                <div className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/20 bg-slate-800/30">
                   <img 
-                    src="/our-services.png" 
+                    src={ourServicesImage} 
                     alt="UNISYS INFOTECH Services"
                     loading="lazy"
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto object-contain"
                   />
                 </div>
               </div>
