@@ -380,7 +380,15 @@ export const CareersPageNew = () => {
                       Apply Now
                     </button>
                   </div>
-                  <p className="text-slate-300 mb-4 text-sm sm:text-base">{job.description}</p>
+                  
+                  {/* Job Description as bullet points */}
+                  <div className="text-slate-300 mb-4 text-sm sm:text-base">
+                    <ul className="list-disc list-inside space-y-2">
+                      {job.description.split(/(?<=[.!?])\s+/).filter(sentence => sentence.trim()).map((sentence, idx) => (
+                        <li key={idx} className="leading-relaxed">{sentence.trim()}</li>
+                      ))}
+                    </ul>
+                  </div>
                   
                   {/* Skills tags */}
                   {job.skills && job.skills.length > 0 && (
