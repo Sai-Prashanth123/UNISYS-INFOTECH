@@ -102,123 +102,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single job posting by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const { data: job, error } = await supabase
-      .from('job_postings')
-      .select('*')
-      .eq('id', req.params.id)
-      .single();
-    
-    if (error || !job) {
-      return res.status(404).json({
-        success: false,
-        message: 'Job posting not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: transformJob(job)
-    });
-  } catch (error) {
-    console.error('Error fetching job:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching job posting',
-      error: error.message
-    });
-  }
-});
-
-// Submit job application (PUBLIC - no auth required)
-router.post('/:id/apply', async (req, res) => {
-  try {
-    // Check if job exists and is active
-    const { data: job } = await supabase
-      .from('job_postings')
-      .select('is_active, title')
-      .eq('id', req.params.id)
-      .single();
-    
-    if (!job) {
-      return res.status(404).json({
-        success: false,
-        message: 'Job posting not found'
-      });
-    }
-
-    if (!job.is_active) {
-      return res.status(400).json({
-        success: false,
-        message: 'This job posting is no longer active'
-      });
-    }
-
-    // Check for duplicate application (same email + same job)
-    const { data: existingApp } = await supabase
-      .from('job_applications')
-      .select('id')
-      .eq('job_id', req.params.id)
-      .eq('email', req.body.email?.toLowerCase().trim())
-      .maybeSingle();
-
-    if (existingApp) {
-      return res.status(400).json({
-        success: false,
-        message: 'You have already applied for this position'
-      });
-    }
-
-    // Create application
-    const { data: application, error } = await supabase
-      .from('job_applications')
-      .insert({
-        job_id: req.params.id,
-        full_name: req.body.fullName || req.body.full_name,
-        email: req.body.email?.toLowerCase().trim(),
-        phone: req.body.phone?.trim(),
-        current_location: req.body.currentLocation || req.body.current_location,
-        experience: req.body.experience,
-        current_company: req.body.currentCompany || req.body.current_company || '',
-        current_role_name: req.body.currentRole || req.body.current_role_name || '',
-        notice_period: req.body.noticePeriod || req.body.notice_period,
-        expected_salary: req.body.expectedSalary || req.body.expected_salary || '',
-        resume_url: req.body.resumeUrl || req.body.resume_url || '',
-        cover_letter: req.body.coverLetter || req.body.cover_letter || '',
-        linkedin_url: req.body.linkedinUrl || req.body.linkedin_url || '',
-        portfolio_url: req.body.portfolioUrl || req.body.portfolio_url || '',
-        status: 'new'
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating application:', error);
-      return res.status(400).json({
-        success: false,
-        message: 'Error submitting application',
-        error: error.message
-      });
-    }
-
-    res.status(201).json({
-      success: true,
-      message: `Application submitted successfully for ${job.title}`,
-      data: transformApplication(application)
-    });
-  } catch (error) {
-    console.error('Error submitting application:', error);
-    res.status(400).json({
-      success: false,
-      message: 'Error submitting application',
-      error: error.message
-    });
-  }
-});
-
-// Admin routes (protected)
+// Admin routes (protected) - must be defined BEFORE /:id so /admin/all etc. are not matched as :id
 // Get all job postings (including inactive)
 router.get('/admin/all', protect, authorize('admin'), async (req, res) => {
   try {
@@ -528,6 +412,120 @@ router.delete('/admin/applications/:id', protect, authorize('admin'), async (req
     res.status(500).json({
       success: false,
       message: 'Error deleting application',
+      error: error.message
+    });
+  }
+});
+
+// Public routes with path params - must be after all /admin/* routes
+// Get single job posting by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const { data: job, error } = await supabase
+      .from('job_postings')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job posting not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: transformJob(job)
+    });
+  } catch (error) {
+    console.error('Error fetching job:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching job posting',
+      error: error.message
+    });
+  }
+});
+
+// Submit job application (PUBLIC - no auth required)
+router.post('/:id/apply', async (req, res) => {
+  try {
+    const { data: job } = await supabase
+      .from('job_postings')
+      .select('is_active, title')
+      .eq('id', req.params.id)
+      .single();
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job posting not found'
+      });
+    }
+
+    if (!job.is_active) {
+      return res.status(400).json({
+        success: false,
+        message: 'This job posting is no longer active'
+      });
+    }
+
+    const { data: existingApp } = await supabase
+      .from('job_applications')
+      .select('id')
+      .eq('job_id', req.params.id)
+      .eq('email', req.body.email?.toLowerCase().trim())
+      .maybeSingle();
+
+    if (existingApp) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already applied for this position'
+      });
+    }
+
+    const { data: application, error } = await supabase
+      .from('job_applications')
+      .insert({
+        job_id: req.params.id,
+        full_name: req.body.fullName || req.body.full_name,
+        email: req.body.email?.toLowerCase().trim(),
+        phone: req.body.phone?.trim(),
+        current_location: req.body.currentLocation || req.body.current_location,
+        experience: req.body.experience,
+        current_company: req.body.currentCompany || req.body.current_company || '',
+        current_role_name: req.body.currentRole || req.body.current_role_name || '',
+        notice_period: req.body.noticePeriod || req.body.notice_period,
+        expected_salary: req.body.expectedSalary || req.body.expected_salary || '',
+        resume_url: req.body.resumeUrl || req.body.resume_url || '',
+        cover_letter: req.body.coverLetter || req.body.cover_letter || '',
+        linkedin_url: req.body.linkedinUrl || req.body.linkedin_url || '',
+        portfolio_url: req.body.portfolioUrl || req.body.portfolio_url || '',
+        status: 'new'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating application:', error);
+      return res.status(400).json({
+        success: false,
+        message: 'Error submitting application',
+        error: error.message
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Application submitted successfully for ${job.title}`,
+      data: transformApplication(application)
+    });
+  } catch (error) {
+    console.error('Error submitting application:', error);
+    res.status(400).json({
+      success: false,
+      message: 'Error submitting application',
       error: error.message
     });
   }
