@@ -378,7 +378,7 @@ router.post('/:id/sow-upload', protect, authorize('admin'), async (req, res) => 
 router.post('/', protect, authorize('admin'), [
   body('name').trim().notEmpty().withMessage('Client name is required'),
   // Allow multiple contracts for same client/email; email is optional
-  body('email').optional({ nullable: true }).isEmail().withMessage('Please provide a valid email'),
+  body('email').optional({ nullable: true, checkFalsy: true }).isEmail().withMessage('Please provide a valid email'),
   // UI: "SOW Name *" maps to industry (backward compatibility)
   body('sowName').optional().trim(),
   body('industry').optional().trim(),
@@ -387,18 +387,19 @@ router.post('/', protect, authorize('admin'), [
   body('phone').optional().trim(),
   body('address').optional().trim(),
   body('technology').optional().trim(),
-  body('onboardingDate').optional().isISO8601().toDate(),
-  body('offboardingDate').optional().isISO8601().toDate(),
+  // Allow empty string from UI for optional dates
+  body('onboardingDate').optional({ nullable: true, checkFalsy: true }).isISO8601().toDate(),
+  body('offboardingDate').optional({ nullable: true, checkFalsy: true }).isISO8601().toDate(),
   body('status').optional().isIn(['active', 'inactive']),
-  body('billingRatePerHr').optional().isFloat({ min: 0 }).withMessage('Billing rate must be a valid number'),
+  body('billingRatePerHr').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Billing rate must be a valid number'),
   body('share1Name').optional().trim(),
-  body('share1HrRate').optional().isFloat({ min: 0 }).withMessage('Share-1 HR rate must be a valid number'),
+  body('share1HrRate').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Share-1 HR rate must be a valid number'),
   body('share2Name').optional().trim(),
-  body('share2HrRate').optional().isFloat({ min: 0 }).withMessage('Share-2 HR rate must be a valid number'),
+  body('share2HrRate').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Share-2 HR rate must be a valid number'),
   body('share3Name').optional().trim(),
-  body('share3HrRate').optional().isFloat({ min: 0 }).withMessage('Share-3 HR rate must be a valid number'),
-  body('unisysHold').optional().isFloat({ min: 0 }).withMessage('Unisys hold must be a valid number'),
-  body('unisysShareHrRate').optional().isFloat({ min: 0 }).withMessage('Unisys share HR rate must be a valid number'),
+  body('share3HrRate').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Share-3 HR rate must be a valid number'),
+  body('unisysHold').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Unisys hold must be a valid number'),
+  body('unisysShareHrRate').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Unisys share HR rate must be a valid number'),
   body('assignedUsers').optional().isArray().withMessage('assignedUsers must be an array')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -526,26 +527,26 @@ router.post('/', protect, authorize('admin'), [
 // Update client (admin only)
 router.put('/:id', protect, authorize('admin'), [
   body('name').optional().trim(),
-  body('email').optional({ nullable: true }).isEmail().withMessage('Please provide a valid email'),
+  body('email').optional({ nullable: true, checkFalsy: true }).isEmail().withMessage('Please provide a valid email'),
   body('sowName').optional().trim(),
   body('industry').optional().trim(),
-  body('resourceName').optional().trim(),
+  body('resourceName').optional({ nullable: true, checkFalsy: true }).trim(),
   body('contactPerson').optional().trim(),
   body('phone').optional().trim(),
   body('address').optional().trim(),
   body('technology').optional().trim(),
-  body('onboardingDate').optional().isISO8601().toDate(),
-  body('offboardingDate').optional().isISO8601().toDate(),
+  body('onboardingDate').optional({ nullable: true, checkFalsy: true }).isISO8601().toDate(),
+  body('offboardingDate').optional({ nullable: true, checkFalsy: true }).isISO8601().toDate(),
   body('status').optional().isIn(['active', 'inactive']),
-  body('billingRatePerHr').optional().isFloat({ min: 0 }).withMessage('Billing rate must be a valid number'),
+  body('billingRatePerHr').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Billing rate must be a valid number'),
   body('share1Name').optional().trim(),
-  body('share1HrRate').optional().isFloat({ min: 0 }).withMessage('Share-1 HR rate must be a valid number'),
+  body('share1HrRate').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Share-1 HR rate must be a valid number'),
   body('share2Name').optional().trim(),
-  body('share2HrRate').optional().isFloat({ min: 0 }).withMessage('Share-2 HR rate must be a valid number'),
+  body('share2HrRate').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Share-2 HR rate must be a valid number'),
   body('share3Name').optional().trim(),
-  body('share3HrRate').optional().isFloat({ min: 0 }).withMessage('Share-3 HR rate must be a valid number'),
-  body('unisysHold').optional().isFloat({ min: 0 }).withMessage('Unisys hold must be a valid number'),
-  body('unisysShareHrRate').optional().isFloat({ min: 0 }).withMessage('Unisys share HR rate must be a valid number'),
+  body('share3HrRate').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Share-3 HR rate must be a valid number'),
+  body('unisysHold').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Unisys hold must be a valid number'),
+  body('unisysShareHrRate').optional({ nullable: true, checkFalsy: true }).isFloat({ min: 0 }).withMessage('Unisys share HR rate must be a valid number'),
   body('assignedUsers').optional().isArray().withMessage('assignedUsers must be an array')
 ], async (req, res) => {
   const errors = validationResult(req);

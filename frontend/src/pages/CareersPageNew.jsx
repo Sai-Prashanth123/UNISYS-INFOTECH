@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Briefcase, MapPin, Clock, Award, X, Upload, FileText, CheckCircle, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { ArrowRight, Briefcase, MapPin, Clock, Award, X, Upload, FileText, CheckCircle, Loader2, Wifi, WifiOff, Calendar, DollarSign, ListChecks, GraduationCap } from 'lucide-react';
 import { jobsApi } from '../api/endpoints.js';
 import { supabase } from '../config/supabase.js';
 import { toast } from 'react-toastify';
@@ -99,7 +99,7 @@ export const CareersPageNew = () => {
     subscriptionRef.current = channel;
   };
 
-  // Transform database job to frontend format
+  // Transform database job to frontend format (all fields for careers page)
   const transformJob = (job) => ({
     _id: job.id,
     id: job.id,
@@ -117,7 +117,8 @@ export const CareersPageNew = () => {
     experience: job.experience,
     salary: job.salary,
     isActive: job.is_active,
-    postedDate: job.posted_date
+    postedDate: job.posted_date,
+    additionalInfo: job.additional_info
   });
 
   const handleInputChange = (e) => {
@@ -347,32 +348,11 @@ export const CareersPageNew = () => {
                   key={job._id || job.id}
                   className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#1a2942]/50 to-[#0f1d35]/50 border border-blue-900/30 hover:border-blue-500/50 transition-all duration-300 hover:scale-[1.01] group"
                 >
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-                    <div>
-                      <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
-                        {job.title}
-                      </h3>
-                      <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <Briefcase className="w-4 h-4" />
-                          {job.department}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {job.location}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {job.type}
-                        </span>
-                        {(job.experience || job.yearsOfExperience) && (
-                          <span className="flex items-center gap-1">
-                            <Award className="w-4 h-4" />
-                            {job.yearsOfExperience ? `${job.yearsOfExperience}+ years` : job.experience}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                  {/* Header: Title + Apply */}
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
+                      {job.title}
+                    </h3>
                     <button
                       onClick={() => openApplyModal(job)}
                       className="px-4 sm:px-6 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 whitespace-nowrap hover:scale-105 shadow-lg"
@@ -380,40 +360,95 @@ export const CareersPageNew = () => {
                       Apply Now
                     </button>
                   </div>
-                  
+
+                  {/* Basic info row */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-400 mb-5 pb-5 border-b border-white/10">
+                    <span className="flex items-center gap-1.5">
+                      <Briefcase className="w-4 h-4 text-blue-400/80" />
+                      {job.department}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-blue-400/80" />
+                      {job.location}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="w-4 h-4 text-blue-400/80" />
+                      {job.type}
+                    </span>
+                    {(job.yearsOfExperience != null && job.yearsOfExperience !== '') && (
+                      <span className="flex items-center gap-1.5">
+                        <Award className="w-4 h-4 text-blue-400/80" />
+                        {job.yearsOfExperience} {Number(job.yearsOfExperience) === 1 ? 'year' : 'years'} exp.
+                      </span>
+                    )}
+                    {job.salary && (
+                      <span className="flex items-center gap-1.5">
+                        <DollarSign className="w-4 h-4 text-blue-400/80" />
+                        {job.salary}
+                      </span>
+                    )}
+                    {job.postedDate && (
+                      <span className="flex items-center gap-1.5">
+                        <Calendar className="w-4 h-4 text-blue-400/80" />
+                        Posted: {new Date(job.postedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+
                   {/* Job Description */}
-                  {job.responsibilities && job.responsibilities.length > 0 ? (
-                    // Display responsibilities as bullet points if available
-                    <div className="text-slate-300 mb-4 text-sm sm:text-base">
-                      <ul className="list-disc list-inside space-y-2">
-                        {job.responsibilities.map((responsibility, idx) => (
-                          <li key={idx} className="leading-relaxed">{responsibility}</li>
+                  {job.description && (
+                    <div className="mb-5">
+                      <h4 className="text-sm font-semibold text-blue-400 mb-2">Job Description</h4>
+                      <p className="text-slate-300 text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+                        {job.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Skills (Tags) */}
+                  {job.skills && job.skills.length > 0 && (
+                    <div className="mb-5">
+                      <h4 className="text-sm font-semibold text-blue-400 mb-2">Skills</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {job.skills.map((skill, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 rounded-full text-xs bg-blue-500/20 text-blue-300 font-medium"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Responsibilities */}
+                  {job.responsibilities && job.responsibilities.length > 0 && (
+                    <div className="mb-5">
+                      <h4 className="text-sm font-semibold text-blue-400 mb-2 flex items-center gap-1.5">
+                        <ListChecks className="w-4 h-4" />
+                        Responsibilities
+                      </h4>
+                      <ul className="list-disc list-inside space-y-1.5 text-slate-300 text-sm sm:text-base">
+                        {job.responsibilities.map((item, idx) => (
+                          <li key={idx} className="leading-relaxed">{item}</li>
                         ))}
                       </ul>
                     </div>
-                  ) : (
-                    // Otherwise display full description as paragraph
-                    <p className="text-slate-300 mb-4 text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
-                      {job.description}
-                    </p>
                   )}
-                  
-                  {/* Skills tags */}
-                  {job.skills && job.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {job.skills.slice(0, 6).map((skill, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-1 rounded-full text-xs bg-blue-500/20 text-blue-300 font-medium"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {job.skills.length > 6 && (
-                        <span className="px-3 py-1 rounded-full text-xs text-slate-400">
-                          +{job.skills.length - 6} more
-                        </span>
-                      )}
+
+                  {/* Qualifications */}
+                  {job.qualifications && job.qualifications.length > 0 && (
+                    <div className="mb-0">
+                      <h4 className="text-sm font-semibold text-blue-400 mb-2 flex items-center gap-1.5">
+                        <GraduationCap className="w-4 h-4" />
+                        Qualifications
+                      </h4>
+                      <ul className="list-disc list-inside space-y-1.5 text-slate-300 text-sm sm:text-base">
+                        {job.qualifications.map((item, idx) => (
+                          <li key={idx} className="leading-relaxed">{item}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>
