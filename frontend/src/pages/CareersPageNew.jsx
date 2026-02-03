@@ -384,9 +384,16 @@ export const CareersPageNew = () => {
                   {/* Job Description as bullet points */}
                   <div className="text-slate-300 mb-4 text-sm sm:text-base">
                     <ul className="list-disc list-inside space-y-2">
-                      {job.description.split(/(?<=[.!?])\s+/).filter(sentence => sentence.trim()).map((sentence, idx) => (
-                        <li key={idx} className="leading-relaxed">{sentence.trim()}</li>
-                      ))}
+                      {(() => {
+                        // Try splitting by newlines first, then by sentence patterns
+                        let points = job.description.includes('\n') 
+                          ? job.description.split('\n').filter(line => line.trim())
+                          : job.description.split(/(?<=[.!?])\s+(?=[A-Z])/).filter(sentence => sentence.trim());
+                        
+                        return points.map((point, idx) => (
+                          <li key={idx} className="leading-relaxed">{point.trim()}</li>
+                        ));
+                      })()}
                     </ul>
                   </div>
                   
