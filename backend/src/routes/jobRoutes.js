@@ -62,10 +62,10 @@ const transformApplication = (app) => ({
 });
 
 // Public routes
-// Get all active job postings
+// Get all active job postings only (inactive jobs must not appear on careers page)
 router.get('/', async (req, res) => {
   try {
-    const { data: jobs, error } = await supabase
+    const { data: rows, error } = await supabase
       .from('job_postings')
       .select('*')
       .eq('is_active', true)
@@ -81,7 +81,11 @@ router.get('/', async (req, res) => {
       });
     }
     
-    const transformedJobs = (jobs || []).map(transformJob);
+    // Safety filter: only return jobs that are explicitly active (handles DB/type quirks)
+    const activeOnly = (rows || []).filter(
+      (j) => j.is_active === true || j.is_active === 'true'
+    );
+    const transformedJobs = activeOnly.map(transformJob);
     
     res.json({
       success: true,

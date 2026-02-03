@@ -49,7 +49,10 @@ export const CareersPageNew = () => {
   const fetchJobs = async () => {
     try {
       const response = await jobsApi.getAll();
-      setJobs(response.data.data || []);
+      const raw = response.data.data || [];
+      // Only show jobs that are active (visible on careers page)
+      const activeOnly = raw.filter((j) => j.isActive === true);
+      setJobs(activeOnly);
     } catch (error) {
       console.error('Error fetching jobs:', error);
     } finally {
