@@ -381,21 +381,22 @@ export const CareersPageNew = () => {
                     </button>
                   </div>
                   
-                  {/* Job Description as bullet points */}
-                  <div className="text-slate-300 mb-4 text-sm sm:text-base">
-                    <ul className="list-disc list-inside space-y-2">
-                      {(() => {
-                        // Try splitting by newlines first, then by sentence patterns
-                        let points = job.description.includes('\n') 
-                          ? job.description.split('\n').filter(line => line.trim())
-                          : job.description.split(/(?<=[.!?])\s+(?=[A-Z])/).filter(sentence => sentence.trim());
-                        
-                        return points.map((point, idx) => (
-                          <li key={idx} className="leading-relaxed">{point.trim()}</li>
-                        ));
-                      })()}
-                    </ul>
-                  </div>
+                  {/* Job Description */}
+                  {job.responsibilities && job.responsibilities.length > 0 ? (
+                    // Display responsibilities as bullet points if available
+                    <div className="text-slate-300 mb-4 text-sm sm:text-base">
+                      <ul className="list-disc list-inside space-y-2">
+                        {job.responsibilities.map((responsibility, idx) => (
+                          <li key={idx} className="leading-relaxed">{responsibility}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    // Otherwise display full description as paragraph
+                    <p className="text-slate-300 mb-4 text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+                      {job.description}
+                    </p>
+                  )}
                   
                   {/* Skills tags */}
                   {job.skills && job.skills.length > 0 && (
