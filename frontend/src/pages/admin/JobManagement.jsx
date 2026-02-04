@@ -189,20 +189,11 @@ export const JobManagement = () => {
 
   const fetchJobs = async () => {
     try {
-      // Fetch directly from Supabase for accurate is_active status
-      const { data, error } = await supabase
-        .from('job_postings')
-        .select('*')
-        .order('display_order', { ascending: true })
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase fetch error:', error);
-        toast.error('Failed to fetch jobs');
-        return;
-      }
-
-      const transformedJobs = (data || []).map(transformJob);
+      // Use backend API so we get ALL jobs (active + inactive). Direct Supabase with anon
+      // key only returns rows where is_active = true (RLS), so toggle would never show correctly.
+      const response = await jobsApi.getAllAdmin();
+      const list = response?.data?.data ?? [];
+      const transformedJobs = list.map(transformJob);
       setJobs(transformedJobs);
     } catch (error) {
       console.error('Fetch jobs error:', error);
@@ -335,9 +326,8 @@ export const JobManagement = () => {
   };
 
   // Toggle job active status (show/hide on careers page)
-  // Updates directly to Supabase for reliability
+  // Use backend API so the update persists (backend uses service_role; frontend anon key cannot UPDATE job_postings due to RLS).
   const toggleJobStatus = async (job) => {
-    // Normalize current flag in case it comes as boolean / string / number
     const currentActive =
       job.isActive === true ||
       job.isActive === 'true' ||
@@ -347,22 +337,20 @@ export const JobManagement = () => {
     const jobId = job.id || job._id;
 
     try {
-      // Update directly in Supabase for reliability
-      const { error } = await supabase
-        .from('job_postings')
-        .update({ is_active: newStatus })
-        .eq('id', jobId);
+      const response = await jobsApi.update(jobId, { isActive: newStatus });
 
-      if (error) {
-        console.error('Supabase update error:', error);
-        toast.error('Failed to update job status');
+      if (!response?.data?.success) {
+        toast.error(response?.data?.message || 'Failed to update job status');
         return;
       }
 
-      // Update local state immediately
+      // Update local state from response so we stay in sync with DB
+      const updated = response.data?.data;
       setJobs((prevJobs) =>
         prevJobs.map((j) =>
-          (j.id || j._id) === jobId ? { ...j, isActive: newStatus } : j
+          (j.id || j._id) === jobId
+            ? { ...j, ...transformJob(updated || { ...job, isActive: newStatus }) }
+            : j
         )
       );
 
@@ -373,7 +361,7 @@ export const JobManagement = () => {
       );
     } catch (error) {
       console.error('Toggle error:', error);
-      toast.error('Failed to update job status');
+      toast.error(error?.response?.data?.message || 'Failed to update job status');
     }
   };
 
