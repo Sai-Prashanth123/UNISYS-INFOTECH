@@ -48,15 +48,22 @@ export const CareersPageNew = () => {
 
   const fetchJobs = async () => {
     try {
-      const response = await jobsApi.getAll();
-      const raw = response.data.data || [];
-      // Only show jobs that are active (visible on careers page). Treat anything else as hidden.
-      const isActive = (j) => {
-        const v = j.isActive;
-        return v === true || v === 'true' || v === 1;
-      };
-      const activeOnly = raw.filter(isActive);
-      setJobs(activeOnly);
+      // Fetch directly from Supabase so we always respect the latest is_active flag,
+      // independent of any backend API caching or deployment issues.
+      const { data, error } = await supabase
+        .from('job_postings')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true })
+        .order('posted_date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching jobs from Supabase:', error);
+        return;
+      }
+
+      const transformed = (data || []).map(transformJob);
+      setJobs(transformed);
     } catch (error) {
       console.error('Error fetching jobs:', error);
     } finally {
