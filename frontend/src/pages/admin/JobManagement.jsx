@@ -6,7 +6,8 @@ import { toast } from 'react-toastify';
 import { 
   Plus, Edit2, Trash2, Eye, Users, X, FileText, Download, 
   ExternalLink, Star, CheckCircle, XCircle, Clock, Loader2, 
-  RefreshCw, Briefcase, MapPin, Wifi, WifiOff, Search, Filter
+  RefreshCw, Briefcase, MapPin, Wifi, WifiOff, Search, Filter,
+  ToggleLeft, ToggleRight
 } from 'lucide-react';
 
 // Status badge colors
@@ -313,6 +314,18 @@ export const JobManagement = () => {
     }
   };
 
+  // Toggle job active status (show/hide on careers page)
+  const toggleJobStatus = async (job) => {
+    const newStatus = !job.isActive;
+    try {
+      await jobsApi.update(job.id || job._id, { isActive: newStatus });
+      toast.success(newStatus ? 'Job is now visible on careers page' : 'Job hidden from careers page');
+      fetchJobs();
+    } catch (error) {
+      toast.error('Failed to update job status');
+    }
+  };
+
   const viewApplications = async (job) => {
     try {
       setSelectedJobTitle(job.title);
@@ -481,13 +494,18 @@ export const JobManagement = () => {
                         {job.jobCode}
                       </span>
                     )}
-                    <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
-                      job.isActive 
-                        ? 'bg-green-500/20 text-green-400' 
-                        : 'bg-red-500/20 text-red-400'
-                    }`}>
+                    <button
+                      onClick={() => toggleJobStatus(job)}
+                      className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 flex items-center gap-1.5 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ${
+                        job.isActive 
+                          ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' 
+                          : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                      }`}
+                      title={job.isActive ? 'Click to hide from careers page' : 'Click to show on careers page'}
+                    >
+                      {job.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                       {job.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    </button>
                   </div>
                   <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-slate-300">
                     <span className="flex items-center gap-1 truncate">
@@ -532,6 +550,18 @@ export const JobManagement = () => {
                   {job.salary && ` • ${job.salary}`}
                 </div>
                 <div className="flex gap-1.5 sm:gap-2 w-full sm:w-auto justify-end">
+                  {/* Toggle Active/Inactive Button */}
+                  <button
+                    onClick={() => toggleJobStatus(job)}
+                    className={`p-2 sm:p-2.5 rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center ${
+                      job.isActive
+                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                        : 'bg-slate-600 hover:bg-slate-500 text-white'
+                    }`}
+                    title={job.isActive ? 'Click to hide from careers page' : 'Click to show on careers page'}
+                  >
+                    {job.isActive ? <ToggleRight size={16} className="sm:w-[18px] sm:h-[18px]" /> : <ToggleLeft size={16} className="sm:w-[18px] sm:h-[18px]" />}
+                  </button>
                   <button
                     onClick={() => viewApplications(job)}
                     className="p-2 sm:p-2.5 rounded-lg transition-all duration-300 bg-blue-600 hover:bg-blue-700 text-white relative hover:scale-105 active:scale-95 shadow-lg min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
