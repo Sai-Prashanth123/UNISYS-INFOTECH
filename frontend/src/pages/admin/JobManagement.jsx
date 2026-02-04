@@ -131,29 +131,36 @@ export const JobManagement = () => {
   };
 
   // Transform database job to frontend format
-  const transformJob = (job) => ({
-    _id: job.id,
-    id: job.id,
-    jobCode: job.job_code,
-    title: job.title,
-    department: job.department,
-    location: job.location,
-    type: job.type,
-    description: job.description,
-    responsibilities: job.responsibilities || [],
-    expectedSkills: job.expected_skills || [],
-    qualifications: job.qualifications || [],
-    technicalStack: job.technical_stack || [],
-    skills: job.skills || [],
-    yearsOfExperience: job.years_of_experience,
-    experience: job.experience,
-    salary: job.salary,
-    additionalInfo: job.additional_info,
-    isActive: job.is_active,
-    displayOrder: job.display_order || 0,
-    postedDate: job.posted_date,
-    endDate: job.end_date
-  });
+  // Handle both camelCase (from backend API) and snake_case (from Supabase realtime)
+  const transformJob = (job) => {
+    // Normalize isActive: backend returns isActive (camelCase), Supabase returns is_active (snake_case)
+    const rawIsActive = job.isActive !== undefined ? job.isActive : job.is_active;
+    const isActive = rawIsActive === true || rawIsActive === 'true' || rawIsActive === 1;
+    
+    return {
+      _id: job.id || job._id,
+      id: job.id || job._id,
+      jobCode: job.jobCode || job.job_code,
+      title: job.title,
+      department: job.department,
+      location: job.location,
+      type: job.type,
+      description: job.description,
+      responsibilities: job.responsibilities || [],
+      expectedSkills: job.expectedSkills || job.expected_skills || [],
+      qualifications: job.qualifications || [],
+      technicalStack: job.technicalStack || job.technical_stack || [],
+      skills: job.skills || [],
+      yearsOfExperience: job.yearsOfExperience || job.years_of_experience,
+      experience: job.experience,
+      salary: job.salary,
+      additionalInfo: job.additionalInfo || job.additional_info,
+      isActive: isActive,
+      displayOrder: job.displayOrder || job.display_order || 0,
+      postedDate: job.postedDate || job.posted_date,
+      endDate: job.endDate || job.end_date
+    };
+  };
 
   // Transform application data
   const transformApplication = (app) => ({
@@ -182,10 +189,23 @@ export const JobManagement = () => {
 
   const fetchJobs = async () => {
     try {
-      const response = await jobsApi.getAllAdmin();
-      const transformedJobs = (response.data.data || []).map(transformJob);
+      // Fetch directly from Supabase for accurate is_active status
+      const { data, error } = await supabase
+        .from('job_postings')
+        .select('*')
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase fetch error:', error);
+        toast.error('Failed to fetch jobs');
+        return;
+      }
+
+      const transformedJobs = (data || []).map(transformJob);
       setJobs(transformedJobs);
     } catch (error) {
+      console.error('Fetch jobs error:', error);
       toast.error('Failed to fetch jobs');
     } finally {
       setLoading(false);
@@ -315,6 +335,7 @@ export const JobManagement = () => {
   };
 
   // Toggle job active status (show/hide on careers page)
+  // Updates directly to Supabase for reliability
   const toggleJobStatus = async (job) => {
     // Normalize current flag in case it comes as boolean / string / number
     const currentActive =
@@ -323,14 +344,25 @@ export const JobManagement = () => {
       job.isActive === 1;
 
     const newStatus = !currentActive;
+    const jobId = job.id || job._id;
 
     try {
-      await jobsApi.update(job.id || job._id, { isActive: newStatus });
+      // Update directly in Supabase for reliability
+      const { error } = await supabase
+        .from('job_postings')
+        .update({ is_active: newStatus })
+        .eq('id', jobId);
 
-      // Optimistically update local state so the badge + toggle reflect immediately
+      if (error) {
+        console.error('Supabase update error:', error);
+        toast.error('Failed to update job status');
+        return;
+      }
+
+      // Update local state immediately
       setJobs((prevJobs) =>
         prevJobs.map((j) =>
-          (j.id || j._id) === (job.id || job._id) ? { ...j, isActive: newStatus } : j
+          (j.id || j._id) === jobId ? { ...j, isActive: newStatus } : j
         )
       );
 
@@ -339,10 +371,8 @@ export const JobManagement = () => {
           ? 'Job is now visible on careers page'
           : 'Job is now hidden from careers page'
       );
-
-      // Re-sync from server to stay in sync with Supabase
-      fetchJobs();
     } catch (error) {
+      console.error('Toggle error:', error);
       toast.error('Failed to update job status');
     }
   };
