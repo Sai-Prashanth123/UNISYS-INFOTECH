@@ -262,7 +262,7 @@ export const JobManagement = () => {
 
     try {
       if (editingJob) {
-        await jobsApi.update(editingJob._id, cleanedData);
+        await jobsApi.update(editingJob.id || editingJob._id, cleanedData);
         toast.success('Job updated successfully');
       } else {
         await jobsApi.create(cleanedData);

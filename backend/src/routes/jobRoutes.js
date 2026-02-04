@@ -62,13 +62,13 @@ const transformApplication = (app) => ({
 });
 
 // Public routes
-// Get all active job postings only (inactive jobs must not appear on careers page)
+// Get all active job postings only (inactive jobs must NOT appear on careers page)
+// We fetch all and filter in code so behavior is correct regardless of DB column name/type
 router.get('/', async (req, res) => {
   try {
     const { data: rows, error } = await supabase
       .from('job_postings')
       .select('*')
-      .eq('is_active', true)
       .order('display_order', { ascending: true })
       .order('posted_date', { ascending: false });
     
@@ -81,10 +81,12 @@ router.get('/', async (req, res) => {
       });
     }
     
-    // Safety filter: only return jobs that are explicitly active (handles DB/type quirks)
-    const activeOnly = (rows || []).filter(
-      (j) => j.is_active === true || j.is_active === 'true'
-    );
+    // Only return jobs that are explicitly active (is_active true in DB)
+    const isActive = (j) => {
+      const v = j.is_active;
+      return v === true || v === 'true' || v === 1;
+    };
+    const activeOnly = (rows || []).filter(isActive);
     const transformedJobs = activeOnly.map(transformJob);
     
     res.json({
@@ -194,9 +196,15 @@ router.post('/admin/create', protect, authorize('admin'), async (req, res) => {
 // Update job posting
 router.put('/admin/:id', protect, authorize('admin'), async (req, res) => {
   try {
+    const jobId = (req.params.id || '').trim();
+    if (!jobId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Job ID is required'
+      });
+    }
+
     const updateData = {};
-    
-    // Map camelCase to snake_case
     if (req.body.title !== undefined) updateData.title = req.body.title;
     if (req.body.department !== undefined) updateData.department = req.body.department;
     if (req.body.location !== undefined) updateData.location = req.body.location;
@@ -217,14 +225,51 @@ router.put('/admin/:id', protect, authorize('admin'), async (req, res) => {
     if (req.body.postedDate !== undefined) updateData.posted_date = req.body.postedDate;
     if (req.body.endDate !== undefined) updateData.end_date = req.body.endDate;
 
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No fields to update'
+      });
+    }
+
+    // Check job exists first (avoids Supabase .single() "0 rows" error confusion)
+    const { data: existing, error: fetchError } = await supabase
+      .from('job_postings')
+      .select('id')
+      .eq('id', jobId)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Job fetch error:', fetchError);
+      return res.status(500).json({
+        success: false,
+        message: 'Error checking job',
+        error: fetchError.message
+      });
+    }
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job posting not found'
+      });
+    }
+
     const { data: job, error } = await supabase
       .from('job_postings')
       .update(updateData)
-      .eq('id', req.params.id)
+      .eq('id', jobId)
       .select()
-      .single();
+      .maybeSingle();
 
-    if (error || !job) {
+    if (error) {
+      console.error('Job update error:', error);
+      return res.status(400).json({
+        success: false,
+        message: 'Error updating job posting',
+        error: error.message
+      });
+    }
+    if (!job) {
       return res.status(404).json({
         success: false,
         message: 'Job posting not found'
@@ -236,12 +281,12 @@ router.put('/admin/:id', protect, authorize('admin'), async (req, res) => {
       message: 'Job posting updated successfully',
       data: transformJob(job)
     });
-  } catch (error) {
-    console.error('Error updating job:', error);
+  } catch (err) {
+    console.error('Error updating job:', err);
     res.status(400).json({
       success: false,
       message: 'Error updating job posting',
-      error: error.message
+      error: err.message
     });
   }
 });

@@ -50,8 +50,12 @@ export const CareersPageNew = () => {
     try {
       const response = await jobsApi.getAll();
       const raw = response.data.data || [];
-      // Only show jobs that are active (visible on careers page)
-      const activeOnly = raw.filter((j) => j.isActive === true);
+      // Only show jobs that are active (visible on careers page). Treat anything else as hidden.
+      const isActive = (j) => {
+        const v = j.isActive;
+        return v === true || v === 'true' || v === 1;
+      };
+      const activeOnly = raw.filter(isActive);
       setJobs(activeOnly);
     } catch (error) {
       console.error('Error fetching jobs:', error);

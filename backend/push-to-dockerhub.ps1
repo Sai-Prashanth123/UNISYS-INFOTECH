@@ -8,9 +8,7 @@
 
 $image = $env:DOCKER_IMAGE
 if (-not $image) {
-    $image = "unisysinfotech/backend"
-    Write-Host "DOCKER_IMAGE not set. Using default: $image" -ForegroundColor Yellow
-    Write-Host "To use your Docker Hub username, run: `$env:DOCKER_IMAGE = 'YOUR_USERNAME/unisys-backend'" -ForegroundColor Yellow
+    $image = "prashanth1710/unisys-backend"
 }
 
 $tag = "latest"
