@@ -61,6 +61,19 @@ const transformApplication = (app) => ({
   jobLocation: app.job_postings?.location
 });
 
+// Helper: normalize different truthy/falsey representations into a real boolean
+const normalizeBoolean = (value, defaultValue = false) => {
+  if (value === undefined || value === null) return defaultValue;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value === 1;
+  if (typeof value === 'string') {
+    const v = value.toLowerCase().trim();
+    if (['true', '1', 'yes', 'y'].includes(v)) return true;
+    if (['false', '0', 'no', 'n'].includes(v)) return false;
+  }
+  return defaultValue;
+};
+
 // Public routes
 // Get all active job postings only (inactive jobs must NOT appear on careers page)
 // We fetch all and filter in code so behavior is correct regardless of DB column name/type
@@ -155,6 +168,12 @@ router.post('/admin/create', protect, authorize('admin'), async (req, res) => {
     // Get end_date - convert empty to null
     const endDate = emptyToNull(req.body.endDate || req.body.end_date);
 
+    // Normalize isActive flag from request (supports boolean/number/string)
+    const isActive = normalizeBoolean(
+      req.body.isActive !== undefined ? req.body.isActive : req.body.is_active,
+      true
+    );
+
     const { data: job, error } = await supabase
       .from('job_postings')
       .insert({
@@ -173,7 +192,7 @@ router.post('/admin/create', protect, authorize('admin'), async (req, res) => {
         salary: req.body.salary || '',
         additional_info: req.body.additionalInfo || req.body.additional_info || '',
         predicted_feedback: req.body.predictedFeedback || req.body.predicted_feedback || '',
-        is_active: req.body.isActive !== undefined ? req.body.isActive : true,
+        is_active: isActive,
         display_order: req.body.displayOrder || req.body.display_order || 0,
         posted_date: postedDate,
         end_date: endDate
@@ -235,7 +254,11 @@ router.put('/admin/:id', protect, authorize('admin'), async (req, res) => {
     if (req.body.salary !== undefined) updateData.salary = req.body.salary;
     if (req.body.additionalInfo !== undefined) updateData.additional_info = req.body.additionalInfo;
     if (req.body.predictedFeedback !== undefined) updateData.predicted_feedback = req.body.predictedFeedback;
-    if (req.body.isActive !== undefined) updateData.is_active = req.body.isActive;
+    // Normalize isActive from various representations
+    if (req.body.isActive !== undefined || req.body.is_active !== undefined) {
+      const rawIsActive = req.body.isActive !== undefined ? req.body.isActive : req.body.is_active;
+      updateData.is_active = normalizeBoolean(rawIsActive, true);
+    }
     if (req.body.displayOrder !== undefined) updateData.display_order = req.body.displayOrder;
     // Date fields: convert empty string to null so Supabase doesn't fail
     if (req.body.postedDate !== undefined) updateData.posted_date = emptyToNull(req.body.postedDate);
