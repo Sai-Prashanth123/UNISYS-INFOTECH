@@ -143,6 +143,18 @@ router.get('/admin/all', protect, authorize('admin'), async (req, res) => {
 // Create new job posting
 router.post('/admin/create', protect, authorize('admin'), async (req, res) => {
   try {
+    // Helper: convert empty string to null (for date/number fields)
+    const emptyToNull = (val) => (val === '' || val === undefined ? null : val);
+
+    // Get posted_date - default to today if not provided or empty
+    let postedDate = req.body.postedDate || req.body.posted_date;
+    if (!postedDate || postedDate === '') {
+      postedDate = new Date().toISOString().split('T')[0];
+    }
+
+    // Get end_date - convert empty to null
+    const endDate = emptyToNull(req.body.endDate || req.body.end_date);
+
     const { data: job, error } = await supabase
       .from('job_postings')
       .insert({
@@ -156,15 +168,15 @@ router.post('/admin/create', protect, authorize('admin'), async (req, res) => {
         qualifications: req.body.qualifications || [],
         technical_stack: req.body.technicalStack || req.body.technical_stack || [],
         skills: req.body.skills || [],
-        years_of_experience: req.body.yearsOfExperience || req.body.years_of_experience,
+        years_of_experience: emptyToNull(req.body.yearsOfExperience || req.body.years_of_experience),
         experience: req.body.experience || '',
         salary: req.body.salary || '',
         additional_info: req.body.additionalInfo || req.body.additional_info || '',
         predicted_feedback: req.body.predictedFeedback || req.body.predicted_feedback || '',
         is_active: req.body.isActive !== undefined ? req.body.isActive : true,
         display_order: req.body.displayOrder || req.body.display_order || 0,
-        posted_date: req.body.postedDate || req.body.posted_date || new Date().toISOString().split('T')[0],
-        end_date: req.body.endDate || req.body.end_date || null
+        posted_date: postedDate,
+        end_date: endDate
       })
       .select()
       .single();
@@ -204,6 +216,9 @@ router.put('/admin/:id', protect, authorize('admin'), async (req, res) => {
       });
     }
 
+    // Helper: convert empty string to null (for date fields especially)
+    const emptyToNull = (val) => (val === '' || val === undefined ? null : val);
+
     const updateData = {};
     if (req.body.title !== undefined) updateData.title = req.body.title;
     if (req.body.department !== undefined) updateData.department = req.body.department;
@@ -215,15 +230,16 @@ router.put('/admin/:id', protect, authorize('admin'), async (req, res) => {
     if (req.body.qualifications !== undefined) updateData.qualifications = req.body.qualifications;
     if (req.body.technicalStack !== undefined) updateData.technical_stack = req.body.technicalStack;
     if (req.body.skills !== undefined) updateData.skills = req.body.skills;
-    if (req.body.yearsOfExperience !== undefined) updateData.years_of_experience = req.body.yearsOfExperience;
+    if (req.body.yearsOfExperience !== undefined) updateData.years_of_experience = emptyToNull(req.body.yearsOfExperience);
     if (req.body.experience !== undefined) updateData.experience = req.body.experience;
     if (req.body.salary !== undefined) updateData.salary = req.body.salary;
     if (req.body.additionalInfo !== undefined) updateData.additional_info = req.body.additionalInfo;
     if (req.body.predictedFeedback !== undefined) updateData.predicted_feedback = req.body.predictedFeedback;
     if (req.body.isActive !== undefined) updateData.is_active = req.body.isActive;
     if (req.body.displayOrder !== undefined) updateData.display_order = req.body.displayOrder;
-    if (req.body.postedDate !== undefined) updateData.posted_date = req.body.postedDate;
-    if (req.body.endDate !== undefined) updateData.end_date = req.body.endDate;
+    // Date fields: convert empty string to null so Supabase doesn't fail
+    if (req.body.postedDate !== undefined) updateData.posted_date = emptyToNull(req.body.postedDate);
+    if (req.body.endDate !== undefined) updateData.end_date = emptyToNull(req.body.endDate);
 
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
