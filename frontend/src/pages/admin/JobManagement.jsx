@@ -316,10 +316,31 @@ export const JobManagement = () => {
 
   // Toggle job active status (show/hide on careers page)
   const toggleJobStatus = async (job) => {
-    const newStatus = !job.isActive;
+    // Normalize current flag in case it comes as boolean / string / number
+    const currentActive =
+      job.isActive === true ||
+      job.isActive === 'true' ||
+      job.isActive === 1;
+
+    const newStatus = !currentActive;
+
     try {
       await jobsApi.update(job.id || job._id, { isActive: newStatus });
-      toast.success(newStatus ? 'Job is now visible on careers page' : 'Job hidden from careers page');
+
+      // Optimistically update local state so the badge + toggle reflect immediately
+      setJobs((prevJobs) =>
+        prevJobs.map((j) =>
+          (j.id || j._id) === (job.id || job._id) ? { ...j, isActive: newStatus } : j
+        )
+      );
+
+      toast.success(
+        newStatus
+          ? 'Job is now visible on careers page'
+          : 'Job is now hidden from careers page'
+      );
+
+      // Re-sync from server to stay in sync with Supabase
       fetchJobs();
     } catch (error) {
       toast.error('Failed to update job status');
