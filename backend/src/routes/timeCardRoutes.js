@@ -1078,22 +1078,34 @@ router.get('/admin/all-entries', protect, authorize('admin'), async (req, res) =
  */
 router.get('/admin/monthly-summary', protect, authorize('admin'), async (req, res) => {
   try {
-    const { month, year } = req.query; // Format: month="01", year="2026"
+    const { month, year } = req.query; // Format: month="01" or "1", year="2026"
     
     if (!month || !year) {
       return res.status(400).json({ message: 'Month and year are required' });
     }
 
-    // Calculate date range for the selected month
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
+    const monthNum = parseInt(month, 10);
+    const yearNum = parseInt(year, 10);
+    if (Number.isNaN(monthNum) || Number.isNaN(yearNum) || monthNum < 1 || monthNum > 12 || yearNum < 2000 || yearNum > 2100) {
+      return res.status(400).json({ message: 'Invalid month or year. Use month 1-12 and a valid year.' });
+    }
+
+    // Calculate date range for the selected month (month is 1-based from client)
+    const startDate = new Date(yearNum, monthNum - 1, 1);
+    const endDate = new Date(yearNum, monthNum, 0);
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      return res.status(400).json({ message: 'Invalid date range' });
+    }
+
+    const startStr = startDate.toISOString().split('T')[0];
+    const endStr = endDate.toISOString().split('T')[0];
 
     // Fetch all timecards for the month
     const { data: timeCards, error } = await supabase
       .from('time_cards')
       .select('*')
-      .gte('date', startDate.toISOString().split('T')[0])
-      .lte('date', endDate.toISOString().split('T')[0]);
+      .gte('date', startStr)
+      .lte('date', endStr);
 
     if (error) throw error;
 
