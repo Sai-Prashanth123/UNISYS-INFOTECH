@@ -103,6 +103,18 @@ router.post('/login', authLimiter, [
       });
     }
 
+    // Admin login restriction: only the designated admin email can log in as admin
+    const ALLOWED_ADMIN_EMAIL = 'bhanu.kilaru@unisysinfotech.com';
+    if (user.role === 'admin') {
+      const emailLower = (user.email || '').toLowerCase().trim();
+      if (emailLower !== ALLOWED_ADMIN_EMAIL.toLowerCase()) {
+        return res.status(403).json({
+          message: 'Admin access is restricted. You do not have permission to log in as administrator.',
+          errorCode: 'ADMIN_ACCESS_RESTRICTED'
+        });
+      }
+    }
+
     // Role validation: ensure selected role matches user's actual role
     if (selectedRole && selectedRole !== user.role) {
       return res.status(403).json({ 

@@ -26,9 +26,12 @@ export const ForgotPasswordPage = () => {
       // Use Supabase Auth to send password reset email
       // Supabase handles the email delivery automatically
       // Use environment variable for consistent redirect URL (matches Supabase Site URL)
-      // Use production URL only (no localhost) for reset redirect
-      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || 'https://www.unisysinfotech.com';
-      const redirectUrl = `${frontendUrl}/reset-password`;
+      // Must be a full URL (with https://) or Supabase treats it as a path and redirects to supabase.co/www.unisysinfotech.com
+      let frontendUrl = (import.meta.env.VITE_FRONTEND_URL || 'https://www.unisysinfotech.com').trim();
+      if (!frontendUrl.startsWith('http://') && !frontendUrl.startsWith('https://')) {
+        frontendUrl = `https://${frontendUrl}`;
+      }
+      const redirectUrl = `${frontendUrl.replace(/\/$/, '')}/reset-password`;
       
       // Debug logging
       console.log('Password reset redirect URL:', redirectUrl);
