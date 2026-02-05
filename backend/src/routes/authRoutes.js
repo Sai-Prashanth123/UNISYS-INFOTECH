@@ -11,6 +11,15 @@ import logger from '../utils/logger.js';
 
 const router = express.Router();
 
+// Production frontend URL – only this link is used in production (no localhost)
+const PRODUCTION_FRONTEND_URL = 'https://www.unisysinfotech.com';
+const getFrontendUrl = () => {
+  if (process.env.NODE_ENV === 'production') return PRODUCTION_FRONTEND_URL;
+  const env = process.env.FRONTEND_URL || 'http://localhost:5173';
+  if (env.includes('azurestaticapps.net')) return PRODUCTION_FRONTEND_URL;
+  return env;
+};
+
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE
@@ -222,9 +231,9 @@ router.post('/forgot-password', passwordResetLimiter, [
     if (user.supabase_auth_id) {
       logger.info('Using Supabase Auth for password reset', { email: user.email });
       
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const frontendUrl = getFrontendUrl();
       const redirectUrl = `${frontendUrl}/reset-password`;
-      
+
       // Log the redirect URL being used (for debugging)
       logger.info('Password reset redirect URL', { redirectUrl, frontendUrl, envVar: process.env.FRONTEND_URL });
       
@@ -277,7 +286,7 @@ router.post('/forgot-password', passwordResetLimiter, [
     }
 
     // Build reset URL (frontend URL)
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = getFrontendUrl();
     const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
 
     // Send password reset email using Resend

@@ -70,7 +70,7 @@ async function testPasswordReset() {
     const { data: resetData, error: resetError } = await supabase.auth.resetPasswordForEmail(
       'admin@unisys.com',
       {
-        redirectTo: 'http://localhost:5173/reset-password'
+        redirectTo: (process.env.FRONTEND_URL || 'https://www.unisysinfotech.com') + '/reset-password'
       }
     );
 
@@ -80,7 +80,7 @@ async function testPasswordReset() {
       console.error('   1. Go to: https://supabase.com/dashboard/project/kwqabttdbdslmjzbcppo/settings/auth');
       console.error('   2. Enable "Email" auth provider');
       console.error('   3. Enable "Email confirmations"');
-      console.error('   4. Set Site URL to: http://localhost:5173');
+      console.error('   4. Set Site URL to: https://www.unisysinfotech.com');
       console.error('   5. Save and try again');
     } else {
       console.log('✅ Password reset email sent successfully!');

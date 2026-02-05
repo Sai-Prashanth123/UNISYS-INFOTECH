@@ -41,6 +41,9 @@ app.use(enforceHTTPS); // Force HTTPS in production
 app.use(helmetConfig); // Security headers
 app.use(requestLogger); // Request logging
 
+// Production frontend URL – only this origin allowed in production (no localhost)
+const PRODUCTION_FRONTEND_URL = 'https://www.unisysinfotech.com';
+
 // CORS Configuration - strict in production
 const parseAllowedOrigins = () => {
   const raw = [
@@ -51,17 +54,19 @@ const parseAllowedOrigins = () => {
     .filter(Boolean)
     .join(',');
 
-  const origins = raw
+  let origins = raw
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
 
-  // Always allow localhost during dev/testing convenience
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV === 'production') {
+    // Production: only use production URL, ensure it is in the list
+    if (!origins.includes(PRODUCTION_FRONTEND_URL)) origins.push(PRODUCTION_FRONTEND_URL);
+    origins = origins.filter((o) => !o.includes('localhost') && !o.includes('azurestaticapps.net'));
+  } else {
     origins.push('http://localhost:5173', 'http://localhost:3000');
   }
 
-  // De-dupe
   return [...new Set(origins)];
 };
 

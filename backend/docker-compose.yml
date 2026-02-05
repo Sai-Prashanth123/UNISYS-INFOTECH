@@ -16,7 +16,7 @@ services:
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3cWFidHRkYmRzbG1qemJjcHBvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODAzMDE1OSwiZXhwIjoyMDgzNjA2MTU5fQ.O91R3bRiizQa_V93FCQ-oQMjlQ7zcLfGp5S-x0Vzq04}
       - JWT_SECRET=${JWT_SECRET:-sb_secret_Z9ph30NKUVr-ul-RSMz8kA_ZGQsrJc0}
       - JWT_EXPIRE=${JWT_EXPIRE:-24h}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - FRONTEND_URL=${FRONTEND_URL:-https://www.unisysinfotech.com}
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       # Mount logs directory for persistence

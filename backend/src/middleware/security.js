@@ -155,19 +155,27 @@ export const enforceHTTPS = (req, res, next) => {
   next();
 };
 
+// Production frontend URL – only this origin in production (no localhost)
+const PRODUCTION_FRONTEND_URL = 'https://www.unisysinfotech.com';
+
 /**
  * CORS Validation Middleware
  * Ensures CORS is properly configured for production
  */
 export const validateCORS = (req, res, next) => {
   const origin = req.headers.origin;
-  const allowedOrigins = [
+  let allowedOrigins = [
     process.env.FRONTEND_URL,
     ...(process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : []),
     ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : []),
   ]
     .map((s) => (s || '').trim())
     .filter(Boolean);
+
+  if (process.env.NODE_ENV === 'production') {
+    if (!allowedOrigins.includes(PRODUCTION_FRONTEND_URL)) allowedOrigins.push(PRODUCTION_FRONTEND_URL);
+    allowedOrigins = allowedOrigins.filter((o) => !o.includes('localhost') && !o.includes('azurestaticapps.net'));
+  }
 
   if (process.env.NODE_ENV === 'production') {
     if (origin && allowedOrigins.length > 0 && !origin.includes('localhost') && !allowedOrigins.includes(origin)) {
