@@ -43,7 +43,7 @@ EXPOSE 80
 # Set default environment variables (can be overridden at runtime)
 ENV NODE_ENV=production
 ENV PORT=80
-ENV FRONTEND_URL=https://happy-ocean-08bd11c10.2.azurestaticapps.net
+ENV FRONTEND_URL=https://www.unisysinfotech.com
 ENV LOG_LEVEL=info
 
 # Health check
