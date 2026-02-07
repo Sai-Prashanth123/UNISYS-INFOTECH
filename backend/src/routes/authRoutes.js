@@ -122,7 +122,9 @@ router.post('/login', authLimiter, [
       });
     }
 
+    // Use the public.users table ID (not supabase_auth_id) for JWT
     const token = generateToken(user.id, user.role);
+    logger.info('User logged in', { userId: user.id, email: user.email, role: user.role });
 
     res.status(200).json({
       success: true,
@@ -147,15 +149,26 @@ router.post('/login', authLimiter, [
 // Get current user
 router.get('/me', protect, async (req, res) => {
   try {
-    const { data: user, error } = await supabase
+    const { data: users, error } = await supabase
       .from('users')
       .select('id, name, email, role, designation, department, employer_id, is_active, must_reset_password, created_at, updated_at')
       .eq('id', req.user.id)
-      .single();
+      .limit(1);
 
-    if (error || !user) {
-      return res.status(404).json({ message: 'User not found', error: error?.message });
+    if (error) {
+      logger.error('Error fetching current user', { error: error.message, userId: req.user.id });
+      return res.status(500).json({ message: 'Server error', error: error.message });
     }
+
+    if (!users || users.length === 0) {
+      // User ID from JWT no longer exists - stale session
+      return res.status(401).json({ 
+        message: 'Your session is invalid. Please log in again.',
+        errorCode: 'SESSION_INVALID'
+      });
+    }
+
+    const user = users[0];
 
     // Transform to match expected format (camelCase and remove password)
     const userResponse = {
@@ -541,15 +554,28 @@ router.post('/change-password', protect, [
     }
 
     // Fetch user with password + auth id
-    const { data: user, error: userError } = await supabase
+    // Use .limit(1) instead of .single() to avoid PostgREST 406 errors
+    const { data: users, error: userError } = await supabase
       .from('users')
       .select('id, password, supabase_auth_id')
       .eq('id', req.user.id)
-      .single();
+      .limit(1);
 
-    if (userError || !user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (userError) {
+      logger.error('Error fetching user for password change', { error: userError.message, userId: req.user.id });
+      return res.status(500).json({ message: 'Server error', error: userError.message });
     }
+
+    if (!users || users.length === 0) {
+      // User ID from JWT no longer exists in DB (deleted & recreated account)
+      logger.warn('User not found for password change - stale session', { userId: req.user.id });
+      return res.status(401).json({ 
+        message: 'Your session is invalid. Your account may have been recreated. Please log in again.',
+        errorCode: 'SESSION_INVALID'
+      });
+    }
+
+    const user = users[0];
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {

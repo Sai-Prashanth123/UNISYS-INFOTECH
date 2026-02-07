@@ -30,19 +30,27 @@ api.interceptors.response.use(
                            error.config?.url?.includes('/auth/forgot-password') ||
                            error.config?.url?.includes('/auth/reset-password');
     
-    if (error.response?.status === 401 && !isAuthEndpoint) {
-      // Only logout and redirect for non-auth endpoints (e.g., expired token on protected routes)
-      useAuthStore.getState().logout();
-      // Get the current path to determine which login page to redirect to
-      const path = window.location.pathname;
-      if (path.includes('/admin')) {
-        window.location.href = '/login/admin';
-      } else if (path.includes('/employer')) {
-        window.location.href = '/login/employer';
-      } else if (path.includes('/employee')) {
-        window.location.href = '/login/employee';
-      } else {
-        window.location.href = '/login/employee';
+    // Don't auto-redirect for change-password - let the component handle it
+    const isChangePassword = error.config?.url?.includes('/auth/change-password');
+
+    const status = error.response?.status;
+    const errorCode = error.response?.data?.errorCode;
+
+    if (!isAuthEndpoint && !isChangePassword) {
+      // Handle invalid session (401 unauthorized or SESSION_INVALID)
+      if (status === 401 || errorCode === 'SESSION_INVALID') {
+        useAuthStore.getState().logout();
+        // Get the current path to determine which login page to redirect to
+        const path = window.location.pathname;
+        if (path.includes('/admin')) {
+          window.location.href = '/login/admin';
+        } else if (path.includes('/employer')) {
+          window.location.href = '/login/employer';
+        } else if (path.includes('/employee')) {
+          window.location.href = '/login/employee';
+        } else {
+          window.location.href = '/login/employee';
+        }
       }
     }
     return Promise.reject(error);

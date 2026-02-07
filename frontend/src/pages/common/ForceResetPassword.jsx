@@ -12,7 +12,7 @@ import { Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from 'lucide-react';
  */
 export const ForceResetPassword = () => {
   const navigate = useNavigate();
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, logout } = useAuthStore();
 
   const [formData, setFormData] = useState({
     currentPassword: '',
@@ -64,6 +64,19 @@ export const ForceResetPassword = () => {
       else if (user?.role === 'employee') navigate('/employee/timecards');
       else navigate('/');
     } catch (error) {
+      const status = error.response?.status;
+      const errorCode = error.response?.data?.errorCode;
+
+      // Handle stale session (user was deleted & recreated, or session expired)
+      if (status === 401 || errorCode === 'SESSION_INVALID' || status === 404) {
+        toast.error('Your session has expired or is invalid. Please log in again.');
+        logout();
+        // Redirect to appropriate login page
+        const role = user?.role || 'employee';
+        navigate(`/login/${role}`);
+        return;
+      }
+
       const errorMsg =
         error.response?.data?.message ||
         (Array.isArray(error.response?.data?.errors) ? error.response.data.errors.map(e => e.msg).join(', ') : null) ||
