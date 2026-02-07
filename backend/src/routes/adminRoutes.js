@@ -367,6 +367,21 @@ router.patch('/users/:id/status', protect, authorize('admin'), async (req, res) 
   try {
     const { isActive } = req.body;
     
+    // Prevent deactivating admin accounts
+    const { data: targetUser } = await supabase
+      .from('users')
+      .select('id, role')
+      .eq('id', req.params.id)
+      .single();
+
+    if (!targetUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (targetUser.role === 'admin') {
+      return res.status(403).json({ message: 'Cannot change admin account status' });
+    }
+
     const { data: user, error } = await supabase
       .from('users')
       .update({ is_active: isActive })
@@ -426,6 +441,19 @@ router.put('/users/:id', protect, authorize('admin'), [
     // Prevent changing admin role
     if (currentUser.role === 'admin') {
       return res.status(403).json({ message: 'Cannot modify admin users' });
+    }
+
+    // Prevent setting email to the admin email (would conflict with admin account)
+    if (email && email.toLowerCase().trim() === 'bhanu.kilaru@unisysinfotech.com') {
+      const { data: adminUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', 'bhanu.kilaru@unisysinfotech.com')
+        .neq('id', req.params.id)
+        .limit(1);
+      if (adminUser && adminUser.length > 0) {
+        return res.status(400).json({ message: 'This email is reserved for the admin account' });
+      }
     }
 
     // Normalize client IDs to a unique list (supports both legacy clientId and new clientIds[])

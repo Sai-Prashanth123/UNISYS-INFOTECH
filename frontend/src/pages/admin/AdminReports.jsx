@@ -157,7 +157,7 @@ export const AdminReports = () => {
           };
         }
         const hours = parseFloat(tc.hoursWorked || tc.hours || 0);
-        const hourlyPay = parseFloat(tc.employeeId?.hourlyPay || tc.employeeId?.hourly_pay || 0) || 25;
+        const hourlyPay = parseFloat(tc.employee?.hourlyPay || tc.employee?.hourly_pay || 0) || 25;
         clientActivityMap[clientName].totalHours += hours;
         clientActivityMap[clientName].totalAmount += hours * hourlyPay;
         clientActivityMap[clientName].count += 1;
@@ -495,7 +495,7 @@ export const AdminReports = () => {
               clientActivityMap[clientName] = { clientName, totalHours: 0, totalAmount: 0, count: 0 };
             }
             const hours = parseFloat(tc.hoursWorked || tc.hours || 0);
-            const hourlyPay = parseFloat(tc.employeeId?.hourlyPay || tc.employeeId?.hourly_pay || 0) || 25;
+            const hourlyPay = parseFloat(tc.employee?.hourlyPay || tc.employee?.hourly_pay || 0) || 25;
             clientActivityMap[clientName].totalHours += hours;
             clientActivityMap[clientName].totalAmount += hours * hourlyPay;
             clientActivityMap[clientName].count += 1;

@@ -693,7 +693,17 @@ router.get('/employer/entries', protect, authorize('employer'), async (req, res)
 
     if (error) throw error;
 
-    // Fetch employee info separately and transform to camelCase
+    // Fetch employee and client info separately and transform to camelCase
+    const uniqueClientIds = [...new Set((timeCards || []).map(c => c.client_id).filter(Boolean))];
+    const clientMap = {};
+    if (uniqueClientIds.length > 0) {
+      const { data: clients } = await supabase
+        .from('clients')
+        .select('id, name')
+        .in('id', uniqueClientIds);
+      (clients || []).forEach(c => { clientMap[c.id] = c; });
+    }
+
     const timeCardsWithEmployees = await Promise.all(
       (timeCards || []).map(async (card) => {
         let employee = null;
@@ -706,18 +716,60 @@ router.get('/employer/entries', protect, authorize('employer'), async (req, res)
           employee = empData || null;
         }
         
+        // Resolve client from timecard or user assignment
+        let resolvedClient = card.client_id ? clientMap[card.client_id] : null;
+        if (!resolvedClient && card.employee_id) {
+          // Try user_client_assignments
+          const { data: assignments } = await supabase
+            .from('user_client_assignments')
+            .select('client_id')
+            .eq('user_id', card.employee_id)
+            .limit(1);
+          if (assignments && assignments.length > 0) {
+            const { data: clientData } = await supabase
+              .from('clients')
+              .select('id, name')
+              .eq('id', assignments[0].client_id)
+              .single();
+            if (clientData) resolvedClient = clientData;
+          }
+          // Fallback to users.client_id
+          if (!resolvedClient && employee) {
+            const { data: userData } = await supabase
+              .from('users')
+              .select('client_id')
+              .eq('id', card.employee_id)
+              .single();
+            if (userData?.client_id) {
+              const { data: clientData } = await supabase
+                .from('clients')
+                .select('id, name')
+                .eq('id', userData.client_id)
+                .single();
+              if (clientData) resolvedClient = clientData;
+            }
+          }
+        }
+        
         // Transform to camelCase
         return {
           _id: card.id,
           id: card.id,
           employeeId: card.employee_id,
           employerId: card.employer_id,
+          clientId: card.client_id || null,
           date: card.date,
           hoursWorked: parseFloat(card.hours_worked || 0),
           notes: card.notes || '',
           isLocked: card.is_locked || false,
           createdAt: card.created_at,
           updatedAt: card.updated_at,
+          client: resolvedClient ? {
+            _id: resolvedClient.id,
+            id: resolvedClient.id,
+            name: resolvedClient.name
+          } : null,
+          clientName: resolvedClient?.name || null,
           employee: employee ? {
             _id: employee.id,
             id: employee.id,
@@ -1002,12 +1054,14 @@ router.get('/admin/all-entries', protect, authorize('admin'), async (req, res) =
 
     if (error) throw error;
 
-    // Fetch employee and employer info separately
+    // Fetch employee, employer, and client info separately
     const uniqueEmployeeIds = [...new Set((timeCards || []).map(c => c.employee_id).filter(Boolean))];
     const uniqueEmployerIds = [...new Set((timeCards || []).map(c => c.employer_id).filter(Boolean))];
+    const uniqueClientIds = [...new Set((timeCards || []).map(c => c.client_id).filter(Boolean))];
     
     const employeeMap = {};
     const employerMap = {};
+    const clientMap = {};
     
     await Promise.all([
       ...uniqueEmployeeIds.map(async (empId) => {
@@ -1025,40 +1079,120 @@ router.get('/admin/all-entries', protect, authorize('admin'), async (req, res) =
           .eq('id', empId)
           .single();
         if (employer) employerMap[empId] = employer;
-      })
+      }),
+      // Fetch client names for all timecards
+      ...(uniqueClientIds.length > 0 ? [supabase
+        .from('clients')
+        .select('id, name')
+        .in('id', uniqueClientIds)
+        .then(({ data: clients }) => {
+          (clients || []).forEach(c => { clientMap[c.id] = c; });
+        })] : [])
     ]);
 
+    // Also fetch client assignments for employees that don't have client_id on the timecard
+    // This handles cases where the user has a client assignment but the timecard was submitted without client_id
+    const employeeIdsWithoutClient = [...new Set(
+      (timeCards || [])
+        .filter(c => !c.client_id && c.employee_id)
+        .map(c => c.employee_id)
+    )];
+    
+    const userClientMap = {};
+    if (employeeIdsWithoutClient.length > 0) {
+      // Check user_client_assignments table
+      const { data: assignments } = await supabase
+        .from('user_client_assignments')
+        .select('user_id, client_id')
+        .in('user_id', employeeIdsWithoutClient);
+      
+      if (assignments && assignments.length > 0) {
+        const assignmentClientIds = [...new Set(assignments.map(a => a.client_id))];
+        const { data: assignmentClients } = await supabase
+          .from('clients')
+          .select('id, name')
+          .in('id', assignmentClientIds);
+        
+        const assignmentClientMap = {};
+        (assignmentClients || []).forEach(c => { assignmentClientMap[c.id] = c; });
+        
+        assignments.forEach(a => {
+          if (!userClientMap[a.user_id] && assignmentClientMap[a.client_id]) {
+            userClientMap[a.user_id] = assignmentClientMap[a.client_id];
+          }
+        });
+      }
+      
+      // Also check users.client_id (legacy single client field)
+      const { data: usersWithClient } = await supabase
+        .from('users')
+        .select('id, client_id')
+        .in('id', employeeIdsWithoutClient)
+        .not('client_id', 'is', null);
+      
+      if (usersWithClient && usersWithClient.length > 0) {
+        const legacyClientIds = [...new Set(usersWithClient.map(u => u.client_id).filter(Boolean))];
+        const missingClientIds = legacyClientIds.filter(id => !clientMap[id]);
+        if (missingClientIds.length > 0) {
+          const { data: legacyClients } = await supabase
+            .from('clients')
+            .select('id, name')
+            .in('id', missingClientIds);
+          (legacyClients || []).forEach(c => { clientMap[c.id] = c; });
+        }
+        usersWithClient.forEach(u => {
+          if (!userClientMap[u.id] && u.client_id && clientMap[u.client_id]) {
+            userClientMap[u.id] = clientMap[u.client_id];
+          }
+        });
+      }
+    }
+
     // Transform to camelCase
-    const timeCardsWithRelations = (timeCards || []).map(card => ({
-      _id: card.id,
-      id: card.id,
-      employeeId: card.employee_id,
-      employerId: card.employer_id,
-      date: card.date,
-      hoursWorked: parseFloat(card.hours_worked || 0),
-      notes: card.notes || '',
-      isLocked: card.is_locked || false,
-      createdAt: card.created_at,
-      updatedAt: card.updated_at,
-      employee: employeeMap[card.employee_id] ? {
-        _id: employeeMap[card.employee_id].id,
-        id: employeeMap[card.employee_id].id,
-        name: employeeMap[card.employee_id].name,
-        email: employeeMap[card.employee_id].email,
-        designation: employeeMap[card.employee_id].designation,
-        department: employeeMap[card.employee_id].department,
-        hourlyPay: parseFloat(employeeMap[card.employee_id].hourly_pay || 0)
-      } : null,
-      employer: employerMap[card.employer_id] ? {
-        _id: employerMap[card.employer_id].id,
-        id: employerMap[card.employer_id].id,
-        name: employerMap[card.employer_id].name,
-        email: employerMap[card.employer_id].email
-      } : null
-    }));
+    const timeCardsWithRelations = (timeCards || []).map(card => {
+      // Resolve client: first from timecard client_id, then from user assignment
+      const clientFromCard = card.client_id ? clientMap[card.client_id] : null;
+      const clientFromAssignment = !clientFromCard ? userClientMap[card.employee_id] : null;
+      const resolvedClient = clientFromCard || clientFromAssignment || null;
+
+      return {
+        _id: card.id,
+        id: card.id,
+        employeeId: card.employee_id,
+        employerId: card.employer_id,
+        clientId: card.client_id || null,
+        date: card.date,
+        hoursWorked: parseFloat(card.hours_worked || 0),
+        notes: card.notes || '',
+        isLocked: card.is_locked || false,
+        createdAt: card.created_at,
+        updatedAt: card.updated_at,
+        client: resolvedClient ? {
+          _id: resolvedClient.id,
+          id: resolvedClient.id,
+          name: resolvedClient.name
+        } : null,
+        clientName: resolvedClient?.name || null,
+        employee: employeeMap[card.employee_id] ? {
+          _id: employeeMap[card.employee_id].id,
+          id: employeeMap[card.employee_id].id,
+          name: employeeMap[card.employee_id].name,
+          email: employeeMap[card.employee_id].email,
+          designation: employeeMap[card.employee_id].designation,
+          department: employeeMap[card.employee_id].department,
+          hourlyPay: parseFloat(employeeMap[card.employee_id].hourly_pay || 0)
+        } : null,
+        employer: employerMap[card.employer_id] ? {
+          _id: employerMap[card.employer_id].id,
+          id: employerMap[card.employer_id].id,
+          name: employerMap[card.employer_id].name,
+          email: employerMap[card.employer_id].email
+        } : null
+      };
+    });
 
     // Calculate total hours
-    const totalHours = timeCardsWithRelations.reduce((sum, card) => sum + parseFloat(card.hours_worked || 0), 0);
+    const totalHours = timeCardsWithRelations.reduce((sum, card) => sum + parseFloat(card.hoursWorked || 0), 0);
 
     res.status(200).json({
       success: true,

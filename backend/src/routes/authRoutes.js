@@ -11,6 +11,14 @@ import logger from '../utils/logger.js';
 
 const router = express.Router();
 
+// Admin email – single source of truth for the admin account
+const ADMIN_EMAIL = 'bhanu.kilaru@unisysinfotech.com';
+
+// Helper: check if an email belongs to the admin account
+const isAdminEmail = (email) => {
+  return email && email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase();
+};
+
 // Production frontend URL – only this link is used in production (no localhost)
 const PRODUCTION_FRONTEND_URL = 'https://www.unisysinfotech.com';
 const getFrontendUrl = () => {
@@ -104,10 +112,8 @@ router.post('/login', authLimiter, [
     }
 
     // Admin login restriction: only the designated admin email can log in as admin
-    const ALLOWED_ADMIN_EMAIL = 'bhanu.kilaru@unisysinfotech.com';
     if (user.role === 'admin') {
-      const emailLower = (user.email || '').toLowerCase().trim();
-      if (emailLower !== ALLOWED_ADMIN_EMAIL.toLowerCase()) {
+      if (!isAdminEmail(user.email)) {
         return res.status(403).json({
           message: 'Admin access is restricted. You do not have permission to log in as administrator.',
           errorCode: 'ADMIN_ACCESS_RESTRICTED'
@@ -244,6 +250,17 @@ router.post('/forgot-password', passwordResetLimiter, [
 
     // Check if user is active
     if (!user.is_active) {
+      return res.status(200).json({
+        success: true,
+        message: 'If an account exists with this email, you will receive a password reset link.'
+      });
+    }
+
+    // SECURITY: Block password reset for admin accounts via public forgot-password flow.
+    // Admin password can only be changed by the admin themselves while logged in.
+    if (user.role === 'admin') {
+      logger.warn('Blocked password reset attempt for admin account', { email: normalizedEmail });
+      // Return same generic message to prevent email/role enumeration
       return res.status(200).json({
         success: true,
         message: 'If an account exists with this email, you will receive a password reset link.'
@@ -415,7 +432,52 @@ router.post('/reset-password', [
     const { token, email, password, supabaseSync } = req.body;
 
     // Supabase Auth sync mode - update password by email
+    // SECURITY: Requires a valid Supabase Auth access token to prove the caller
+    // actually completed the email-verified password recovery flow.
     if (supabaseSync && email) {
+      const { supabaseAccessToken } = req.body;
+
+      if (!supabaseAccessToken) {
+        logger.warn('Password sync attempt without Supabase access token', { email });
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required for password sync'
+        });
+      }
+
+      // Verify the Supabase Auth token and ensure the email matches
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(supabaseAccessToken);
+
+      if (authError || !authUser) {
+        logger.warn('Invalid Supabase access token for password sync', { email, error: authError?.message });
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or expired authentication token'
+        });
+      }
+
+      // Ensure the token's email matches the email being synced
+      if (authUser.email?.toLowerCase() !== email.toLowerCase().trim()) {
+        logger.warn('Token email mismatch in password sync', {
+          tokenEmail: authUser.email,
+          requestEmail: email
+        });
+        return res.status(403).json({
+          success: false,
+          message: 'Token does not match the requested email'
+        });
+      }
+
+      // SECURITY: Block Supabase Auth sync for admin accounts.
+      // Even with a valid token, admin password cannot be changed via this flow.
+      if (isAdminEmail(email)) {
+        logger.warn('Blocked Supabase Auth password sync for admin account', { email });
+        return res.status(403).json({
+          success: false,
+          message: 'Admin password cannot be reset via this method. Please use the change password option while logged in.'
+        });
+      }
+
       // Find user by email
       const { data: users, error: fetchError } = await supabase
         .from('users')
@@ -450,7 +512,7 @@ router.post('/reset-password', [
         return res.status(500).json({ message: 'Failed to sync password' });
       }
 
-      logger.info('Password synced successfully (Supabase Auth)', { email });
+      logger.info('Password synced successfully (Supabase Auth, verified token)', { email });
 
       return res.status(200).json({
         success: true,
@@ -486,6 +548,26 @@ router.post('/reset-password', [
       return res.status(400).json({
         success: false,
         message: 'Reset token has expired. Please request a new one.'
+      });
+    }
+
+    // SECURITY: Block legacy token-based reset for admin accounts
+    const { data: tokenUser } = await supabase
+      .from('users')
+      .select('id, role')
+      .eq('id', resetToken.user_id)
+      .single();
+
+    if (tokenUser && tokenUser.role === 'admin') {
+      logger.warn('Blocked legacy token password reset for admin account', { userId: resetToken.user_id });
+      // Invalidate the token
+      await supabase
+        .from('password_reset_tokens')
+        .update({ used: true })
+        .eq('id', resetToken.id);
+      return res.status(403).json({
+        success: false,
+        message: 'Admin password cannot be reset via this method. Please use the change password option while logged in.'
       });
     }
 

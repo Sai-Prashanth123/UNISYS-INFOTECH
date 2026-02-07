@@ -151,14 +151,18 @@ export const ResetPasswordPage = () => {
 
       // Also sync the password to the custom users table
       // This is CRITICAL - login checks public.users table, not Supabase Auth
+      // SECURITY: Send the Supabase Auth access token so the backend can verify
+      // the caller actually completed the email-verified recovery flow.
       try {
+        const { data: { session } } = await supabase.auth.getSession();
         const { data: { user } } = await supabase.auth.getUser();
-        if (user?.email) {
+        if (user?.email && session?.access_token) {
           const syncResponse = await authAPI.resetPassword({
             email: user.email,
             password: password,
             confirmPassword: confirmPassword,
-            supabaseSync: true
+            supabaseSync: true,
+            supabaseAccessToken: session.access_token
           });
           console.log('Backend password sync successful:', syncResponse.data);
         }
@@ -168,13 +172,15 @@ export const ResetPasswordPage = () => {
         console.error('Response:', syncError.response?.data);
         // Retry once with a direct call
         try {
+          const { data: { session: retrySession } } = await supabase.auth.getSession();
           const { data: { user: retryUser } } = await supabase.auth.getUser();
-          if (retryUser?.email) {
+          if (retryUser?.email && retrySession?.access_token) {
             await authAPI.resetPassword({
               email: retryUser.email,
               password: password,
               confirmPassword: password,
-              supabaseSync: true
+              supabaseSync: true,
+              supabaseAccessToken: retrySession.access_token
             });
             console.log('Backend password sync retry successful');
           }
