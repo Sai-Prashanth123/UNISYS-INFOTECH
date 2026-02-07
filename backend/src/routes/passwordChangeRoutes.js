@@ -21,6 +21,91 @@ const toUiRequest = (row) => ({
     : null
 });
 
+// @route   POST /api/password-change/admin-direct
+// @desc    Admin changes their own password directly (no approval needed)
+// @access  Protected (Admin only)
+router.post('/admin-direct',
+  auth,
+  [
+    body('currentPassword', 'Current password is required').notEmpty(),
+    body('newPassword', 'New password must be at least 6 characters').isLength({ min: 6 })
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      // Only admin can use this endpoint
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied. Admin only.' });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+
+      // Get user with password field
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('id, password, email')
+        .eq('id', req.user.id)
+        .single();
+
+      if (userError || !user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Verify current password
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Current password is incorrect' });
+      }
+
+      // Hash new password
+      const salt = await bcrypt.genSalt(10);
+      const newPasswordHash = await bcrypt.hash(newPassword, salt);
+
+      // Update password directly (no approval needed for admin)
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          password: newPasswordHash,
+          must_reset_password: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', req.user.id);
+
+      if (updateError) throw updateError;
+
+      // Also update Supabase Auth password if the user is synced
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('supabase_auth_id')
+          .eq('id', req.user.id)
+          .single();
+
+        if (userData?.supabase_auth_id) {
+          await supabase.auth.admin.updateUserById(userData.supabase_auth_id, {
+            password: newPassword
+          });
+        }
+      } catch (authErr) {
+        // Non-critical: Supabase Auth sync is best-effort
+        console.error('Failed to sync password to Supabase Auth:', authErr.message);
+      }
+
+      res.json({
+        success: true,
+        message: 'Password changed successfully.'
+      });
+    } catch (error) {
+      console.error('Admin direct password change error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+);
+
 // @route   POST /api/password-change/request
 // @desc    Request password change (All authenticated users)
 // @access  Protected

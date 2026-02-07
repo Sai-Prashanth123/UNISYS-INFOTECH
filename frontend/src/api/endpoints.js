@@ -135,6 +135,9 @@ export const passwordChangeAPI = {
   getMyRequests: () => api.get('/password-change/my-requests'),
   cancelRequest: (id) => api.delete(`/password-change/cancel/${id}`),
   
+  // Admin direct password change (no approval needed)
+  adminDirectChange: (data) => api.post('/password-change/admin-direct', data),
+  
   // Admin only
   getAllRequests: (params) => api.get('/password-change/requests', { params }),
   approveRequest: (id) => api.put(`/password-change/approve/${id}`),

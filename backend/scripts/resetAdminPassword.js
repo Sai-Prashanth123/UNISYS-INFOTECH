@@ -1,13 +1,21 @@
 /**
- * Script to reset admin password to "password123"
- * Run with: node scripts/resetAdminPassword.js
+ * Emergency script to reset admin password
+ * 
+ * Usage:
+ *   node scripts/resetAdminPassword.js                    → resets to a random secure password
+ *   node scripts/resetAdminPassword.js MyNewPassword123   → resets to the given password
+ * 
+ * Requires SUPABASE_SERVICE_ROLE_KEY in .env
  */
 
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+const ADMIN_EMAIL = 'bhanu.kilaru@unisysinfotech.com';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://kwqabttdbdslmjzbcppo.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -26,21 +34,34 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 async function resetAdminPassword() {
   try {
-    console.log('🔄 Resetting admin password...\n');
+    // Accept custom password from command line, or generate a random one
+    const customPassword = process.argv[2];
+    const newPassword = customPassword || crypto.randomBytes(12).toString('base64url');
 
-    // Hash the password "password123"
+    if (!customPassword) {
+      console.log('ℹ️  No password provided. Generating a secure random password.\n');
+    }
+
+    if (newPassword.length < 6) {
+      console.error('❌ Password must be at least 6 characters');
+      process.exit(1);
+    }
+
+    console.log(`🔄 Resetting admin password for: ${ADMIN_EMAIL}\n`);
+
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash('password123', salt);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     // Update admin user password
     const { data, error } = await supabase
       .from('users')
       .update({ 
         password: hashedPassword,
+        must_reset_password: false,
         is_active: true,
         updated_at: new Date().toISOString()
       })
-      .eq('email', 'admin@unisys.com')
+      .eq('email', ADMIN_EMAIL)
       .select();
 
     if (error) {
@@ -49,56 +70,40 @@ async function resetAdminPassword() {
     }
 
     if (!data || data.length === 0) {
-      console.error('❌ Admin user not found with email: admin@unisys.com');
-      console.log('\nCreating admin user...');
-      
-      // Create admin user if it doesn't exist
-      const { data: newAdmin, error: createError } = await supabase
-        .from('users')
-        .insert({
-          name: 'Admin User',
-          email: 'admin@unisys.com',
-          password: hashedPassword,
-          role: 'admin',
-          is_active: true
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        console.error('❌ Error creating admin user:', createError);
-        process.exit(1);
-      }
-
-      console.log('✅ Admin user created successfully!\n');
-    } else {
-      console.log('✅ Admin password reset successfully!\n');
-    }
-
-    // Verify the admin user
-    const { data: admin, error: verifyError } = await supabase
-      .from('users')
-      .select('id, name, email, role, is_active')
-      .eq('email', 'admin@unisys.com')
-      .single();
-
-    if (verifyError || !admin) {
-      console.error('❌ Error verifying admin user:', verifyError);
+      console.error(`❌ Admin user not found with email: ${ADMIN_EMAIL}`);
+      console.log('\n  Make sure the admin account exists in the database.');
       process.exit(1);
     }
 
+    // Also sync to Supabase Auth if user has supabase_auth_id
+    try {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('supabase_auth_id')
+        .eq('email', ADMIN_EMAIL)
+        .single();
+
+      if (userData?.supabase_auth_id) {
+        await supabase.auth.admin.updateUserById(userData.supabase_auth_id, {
+          password: newPassword
+        });
+        console.log('✅ Supabase Auth password also synced.\n');
+      }
+    } catch (authErr) {
+      console.log('⚠️  Could not sync to Supabase Auth (non-critical):', authErr.message, '\n');
+    }
+
     console.log('='.repeat(60));
-    console.log('✅ ADMIN CREDENTIALS - READY TO USE');
+    console.log('✅ ADMIN PASSWORD RESET - READY TO USE');
     console.log('='.repeat(60));
     console.log('');
-    console.log('  Email:    admin@unisys.com');
-    console.log('  Password: password123');
-    console.log('  Role:     admin');
-    console.log('  Status:   Active');
+    console.log(`  Email:    ${ADMIN_EMAIL}`);
+    console.log(`  Password: ${newPassword}`);
     console.log('');
     console.log('='.repeat(60));
     console.log('');
     console.log('🎉 You can now log in to the admin dashboard!');
+    console.log('⚠️  Please change this password immediately after logging in.');
     console.log('');
 
   } catch (error) {

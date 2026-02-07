@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { passwordChangeAPI } from '../../api/endpoints.js';
+import { useAuthStore } from '../../store/index.js';
 import { toast } from 'react-toastify';
-import { Lock, Eye, EyeOff, AlertCircle, CheckCircle, Clock, X, ArrowLeft } from 'lucide-react';
+import { Lock, Eye, EyeOff, AlertCircle, CheckCircle, Clock, X, ArrowLeft, ShieldCheck } from 'lucide-react';
 
 export const ChangePassword = () => {
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.role === 'admin';
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -57,10 +60,20 @@ export const ChangePassword = () => {
 
     setLoading(true);
     try {
-      const response = await passwordChangeAPI.requestChange({
-        currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword
-      });
+      let response;
+      if (isAdmin) {
+        // Admin: direct password change, no approval needed
+        response = await passwordChangeAPI.adminDirectChange({
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword
+        });
+      } else {
+        // Other roles: submit request for admin approval
+        response = await passwordChangeAPI.requestChange({
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword
+        });
+      }
       
       toast.success(response.data.message);
       
@@ -71,8 +84,8 @@ export const ChangePassword = () => {
         confirmPassword: ''
       });
       
-      // Refresh requests
-      fetchMyRequests();
+      // Refresh requests (non-admin only)
+      if (!isAdmin) fetchMyRequests();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to submit password change request');
     } finally {
@@ -134,8 +147,8 @@ export const ChangePassword = () => {
           {/* Password Change Form */}
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <Lock size={24} className="text-blue-400" />
-              Request Password Change
+              {isAdmin ? <ShieldCheck size={24} className="text-green-400" /> : <Lock size={24} className="text-blue-400" />}
+              {isAdmin ? 'Change Password' : 'Request Password Change'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -214,10 +227,12 @@ export const ChangePassword = () => {
               </div>
 
               {/* Info Message */}
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                <p className="text-sm text-blue-300 flex items-start gap-2">
-                  <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
-                  Your password change request will be sent to the admin for approval. You will be notified once it's processed.
+              <div className={`${isAdmin ? 'bg-green-500/10 border-green-500/30' : 'bg-blue-500/10 border-blue-500/30'} border rounded-lg p-4`}>
+                <p className={`text-sm ${isAdmin ? 'text-green-300' : 'text-blue-300'} flex items-start gap-2`}>
+                  {isAdmin ? <ShieldCheck size={16} className="flex-shrink-0 mt-0.5" /> : <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />}
+                  {isAdmin
+                    ? 'As an admin, your password will be changed immediately without needing approval.'
+                    : 'Your password change request will be sent to the admin for approval. You will be notified once it\'s processed.'}
                 </p>
               </div>
 
@@ -225,15 +240,15 @@ export const ChangePassword = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full ${isAdmin ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800' : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'} text-white font-semibold px-6 py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {loading ? 'Submitting...' : 'Submit Request'}
+                {loading ? (isAdmin ? 'Changing...' : 'Submitting...') : (isAdmin ? 'Change Password' : 'Submit Request')}
               </button>
             </form>
           </div>
 
-          {/* My Requests */}
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
+          {/* My Requests - hide for admin since they don't need approval */}
+          {!isAdmin && <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
             <h2 className="text-xl font-bold text-white mb-6">My Requests</h2>
 
             {loadingRequests ? (
@@ -302,7 +317,7 @@ export const ChangePassword = () => {
                 ))}
               </div>
             )}
-          </div>
+          </div>}
         </div>
       </div>
     </div>

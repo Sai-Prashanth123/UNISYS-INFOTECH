@@ -256,15 +256,11 @@ router.post('/forgot-password', passwordResetLimiter, [
       });
     }
 
-    // SECURITY: Block password reset for admin accounts via public forgot-password flow.
-    // Admin password can only be changed by the admin themselves while logged in.
+    // Admin accounts can also use forgot-password flow.
+    // The admin's email inbox is the security boundary — only the admin
+    // can access the reset link sent to their email.
     if (user.role === 'admin') {
-      logger.warn('Blocked password reset attempt for admin account', { email: normalizedEmail });
-      // Return same generic message to prevent email/role enumeration
-      return res.status(200).json({
-        success: true,
-        message: 'If an account exists with this email, you will receive a password reset link.'
-      });
+      logger.info('Password reset requested for admin account', { email: normalizedEmail });
     }
 
     logger.info('Password reset requested', { email: user.email });
@@ -468,16 +464,6 @@ router.post('/reset-password', [
         });
       }
 
-      // SECURITY: Block Supabase Auth sync for admin accounts.
-      // Even with a valid token, admin password cannot be changed via this flow.
-      if (isAdminEmail(email)) {
-        logger.warn('Blocked Supabase Auth password sync for admin account', { email });
-        return res.status(403).json({
-          success: false,
-          message: 'Admin password cannot be reset via this method. Please use the change password option while logged in.'
-        });
-      }
-
       // Find user by email
       const { data: users, error: fetchError } = await supabase
         .from('users')
@@ -503,6 +489,7 @@ router.post('/reset-password', [
         .from('users')
         .update({ 
           password: hashedPassword,
+          must_reset_password: false,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -548,26 +535,6 @@ router.post('/reset-password', [
       return res.status(400).json({
         success: false,
         message: 'Reset token has expired. Please request a new one.'
-      });
-    }
-
-    // SECURITY: Block legacy token-based reset for admin accounts
-    const { data: tokenUser } = await supabase
-      .from('users')
-      .select('id, role')
-      .eq('id', resetToken.user_id)
-      .single();
-
-    if (tokenUser && tokenUser.role === 'admin') {
-      logger.warn('Blocked legacy token password reset for admin account', { userId: resetToken.user_id });
-      // Invalidate the token
-      await supabase
-        .from('password_reset_tokens')
-        .update({ used: true })
-        .eq('id', resetToken.id);
-      return res.status(403).json({
-        success: false,
-        message: 'Admin password cannot be reset via this method. Please use the change password option while logged in.'
       });
     }
 
