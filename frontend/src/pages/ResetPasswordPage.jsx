@@ -150,19 +150,38 @@ export const ResetPasswordPage = () => {
       }
 
       // Also sync the password to the custom users table
+      // This is CRITICAL - login checks public.users table, not Supabase Auth
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.email) {
-          await authAPI.resetPassword({
+          const syncResponse = await authAPI.resetPassword({
             email: user.email,
             password: password,
             confirmPassword: confirmPassword,
             supabaseSync: true
           });
+          console.log('Backend password sync successful:', syncResponse.data);
         }
       } catch (syncError) {
-        // Log but don't fail - Supabase Auth password is already updated
-        console.warn('Backend sync warning:', syncError);
+        // This is critical - if sync fails, login won't work with the new password
+        console.error('Backend password sync FAILED:', syncError);
+        console.error('Response:', syncError.response?.data);
+        // Retry once with a direct call
+        try {
+          const { data: { user: retryUser } } = await supabase.auth.getUser();
+          if (retryUser?.email) {
+            await authAPI.resetPassword({
+              email: retryUser.email,
+              password: password,
+              confirmPassword: password,
+              supabaseSync: true
+            });
+            console.log('Backend password sync retry successful');
+          }
+        } catch (retryError) {
+          console.error('Backend password sync retry FAILED:', retryError);
+          toast.warn('Password updated in auth but may not sync to login. Contact admin if login fails.');
+        }
       }
 
       // Sign out from Supabase Auth session
