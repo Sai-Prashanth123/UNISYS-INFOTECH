@@ -47,6 +47,8 @@ import { RegisterPage } from './pages/RegisterPage.jsx';
 import { RoleLoginPage } from './pages/RoleLoginPage.jsx';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage.jsx';
 import { ResetPasswordPage } from './pages/ResetPasswordPage.jsx';
+import { AdminForgotPasswordPage } from './pages/AdminForgotPasswordPage.jsx';
+import { AdminResetPasswordPage } from './pages/AdminResetPasswordPage.jsx';
 
 // Admin Portal
 import AdminLayout from './pages/admin/AdminLayout.jsx';
@@ -111,6 +113,9 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           {/* Reset password - Supabase Auth sends token in URL hash */}
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          {/* Admin-specific password reset flow */}
+          <Route path="/admin/forgot-password" element={<AdminForgotPasswordPage />} />
+          <Route path="/admin/reset-password" element={<AdminResetPasswordPage />} />
 
           {/* Admin Portal */}
           <Route

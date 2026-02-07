@@ -210,6 +210,136 @@ router.post('/logout', protect, (req, res) => {
 });
 
 /**
+ * ADMIN FORGOT PASSWORD - Verify admin email and send reset
+ * POST /api/auth/admin-forgot-password
+ * Public endpoint — verifies email belongs to admin before sending reset link
+ */
+router.post('/admin-forgot-password', passwordResetLimiter, [
+  body('email').isEmail().withMessage('Please provide a valid email')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { email } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Find user by email — must be an admin
+    const { data: users, error: fetchError } = await supabase
+      .from('users')
+      .select('id, name, email, role, is_active, supabase_auth_id')
+      .eq('email', normalizedEmail)
+      .limit(1);
+
+    if (fetchError) {
+      console.error('Supabase query error:', fetchError);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    if (!users || users.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No admin account found with this email address.'
+      });
+    }
+
+    const user = users[0];
+
+    // Must be admin role
+    if (user.role !== 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'This email is not associated with an admin account. Please use the regular password reset.'
+      });
+    }
+
+    if (!user.is_active) {
+      return res.status(400).json({
+        success: false,
+        message: 'This admin account is deactivated. Please contact support.'
+      });
+    }
+
+    logger.info('Admin password reset requested', { email: user.email });
+
+    // Send via Supabase Auth (if synced)
+    if (user.supabase_auth_id) {
+      const frontendUrl = getFrontendUrl();
+      const redirectUrl = `${frontendUrl}/admin/reset-password`;
+
+      logger.info('Admin password reset redirect URL', { redirectUrl });
+
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(
+        normalizedEmail,
+        { redirectTo: redirectUrl }
+      );
+
+      if (authError) {
+        logger.error('Supabase Auth reset error for admin', { error: authError.message });
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send reset email. Please try again later.'
+        });
+      }
+
+      logger.info('Admin password reset email sent via Supabase Auth', { email: user.email });
+      return res.status(200).json({
+        success: true,
+        message: 'Password reset link sent to your admin email.'
+      });
+    }
+
+    // Fallback: Legacy token-based reset for admin not synced to Supabase Auth
+    // Delete any existing reset tokens
+    await supabase
+      .from('password_reset_tokens')
+      .delete()
+      .eq('user_id', user.id);
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    const { error: insertError } = await supabase
+      .from('password_reset_tokens')
+      .insert({
+        user_id: user.id,
+        token: resetToken,
+        expires_at: expiresAt.toISOString(),
+        used: false
+      });
+
+    if (insertError) {
+      console.error('Error storing admin reset token:', insertError);
+      return res.status(500).json({ message: 'Server error' });
+    }
+
+    const frontendUrl = getFrontendUrl();
+    const resetUrl = `${frontendUrl}/admin/reset-password/${resetToken}`;
+
+    // Try to send email
+    if (isEmailConfigured()) {
+      try {
+        await sendPasswordResetEmail(user.email, user.name, resetUrl);
+        logger.info('Admin reset email sent via SMTP', { email: user.email });
+      } catch (emailError) {
+        logger.error('Failed to send admin reset email', { error: emailError.message });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset link sent to your admin email.'
+    });
+
+  } catch (error) {
+    console.error('Admin forgot password error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * FORGOT PASSWORD - Request password reset
  * POST /api/auth/forgot-password
  * Public endpoint - no auth required

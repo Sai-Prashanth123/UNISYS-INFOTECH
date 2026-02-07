@@ -219,7 +219,7 @@ export const RoleLoginPage = () => {
                     <div>
                       <p className="text-red-700 font-medium text-sm">{error}</p>
                       <p className="text-red-600 text-xs mt-2">
-                        <Link to="/forgot-password" className="underline hover:text-red-800 font-medium">
+                        <Link to={role === 'admin' ? '/admin/forgot-password' : '/forgot-password'} className="underline hover:text-red-800 font-medium">
                           Forgot your password? Click here to reset
                         </Link>
                       </p>
@@ -235,7 +235,7 @@ export const RoleLoginPage = () => {
                   <div>
                     <p className="text-red-700 font-medium text-sm">{error}</p>
                     <p className="text-red-600 text-xs mt-1">
-                      Please check your credentials or <Link to="/forgot-password" className="underline hover:text-red-800">reset your password</Link>
+                      Please check your credentials or <Link to={role === 'admin' ? '/admin/forgot-password' : '/forgot-password'} className="underline hover:text-red-800">reset your password</Link>
                     </p>
                   </div>
                 </div>
@@ -268,7 +268,7 @@ export const RoleLoginPage = () => {
                 Password
               </label>
               <Link 
-                to="/forgot-password" 
+                to={role === 'admin' ? '/admin/forgot-password' : '/forgot-password'} 
                 className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors"
               >
                 <KeyRound size={14} />
