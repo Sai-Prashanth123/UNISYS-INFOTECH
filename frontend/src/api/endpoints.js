@@ -58,7 +58,11 @@ export const clientAPI = {
   create: (data) => api.post('/clients', data),
   update: (id, data) => api.put(`/clients/${id}`, data),
   delete: (id) => api.delete(`/clients/${id}`),
-  uploadSow: (id, data) => api.post(`/clients/${id}/sow-upload`, data)
+  uploadSow: (id, data) => api.post(`/clients/${id}/sow-upload`, data),
+  // Multi-SOW document management
+  getSows: (id) => api.get(`/clients/${id}/sows`),
+  uploadNewSow: (id, data) => api.post(`/clients/${id}/sows`, data),
+  deleteSow: (clientId, sowId) => api.delete(`/clients/${clientId}/sows/${sowId}`)
 };
 
 // Hours APIs

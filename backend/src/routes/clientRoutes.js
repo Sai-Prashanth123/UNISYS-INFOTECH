@@ -194,13 +194,37 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
 
     const transformedClients = (clients || []).map(transformClient);
 
+    // Auto-migrate legacy SOWs for clients that have a legacy path but no entries yet
+    const clientIds = (clients || []).map(c => c.id);
+    const clientsWithLegacySow = (clients || []).filter(c => c.sow_document_path);
+    if (clientsWithLegacySow.length > 0) {
+      await Promise.all(clientsWithLegacySow.map(c => migrateLegacySow(c.id)));
+    }
+
+    // Fetch SOW counts for all returned clients in one query
+    let sowCountMap = {};
+    if (clientIds.length > 0) {
+      const { data: sowCounts } = await supabase
+        .from('client_sow_documents')
+        .select('client_id')
+        .in('client_id', clientIds);
+      (sowCounts || []).forEach(s => {
+        sowCountMap[s.client_id] = (sowCountMap[s.client_id] || 0) + 1;
+      });
+    }
+
+    const clientsWithSowCount = transformedClients.map(c => ({
+      ...c,
+      sowDocCount: sowCountMap[c.id] || 0
+    }));
+
     res.status(200).json({
       success: true,
-      count: transformedClients.length,
+      count: clientsWithSowCount.length,
       total: count || 0,
       pages: Math.ceil((count || 0) / limitNum),
       currentPage: pageNum,
-      clients: transformedClients
+      clients: clientsWithSowCount
     });
   } catch (error) {
     console.error('Error fetching clients:', error);
@@ -271,16 +295,40 @@ router.get('/:id', protect, authorize('admin'), async (req, res) => {
       user: a.user ? { _id: a.user.id, id: a.user.id, name: a.user.name, email: a.user.email, role: a.user.role } : null
     }));
 
+    // Auto-migrate legacy SOW if present
+    if (client.sow_document_path) {
+      await migrateLegacySow(req.params.id);
+    }
+
     // Provide a public URL if SOW exists (bucket is expected to be public)
     let sowDocumentUrl = null;
     if (client.sow_document_path) {
       const { data } = supabase.storage.from(SOW_BUCKET).getPublicUrl(client.sow_document_path);
       sowDocumentUrl = data?.publicUrl || null;
     }
+
+    // Fetch all SOW documents for this client
+    const { data: sowDocs } = await supabase
+      .from('client_sow_documents')
+      .select('*')
+      .eq('client_id', req.params.id)
+      .order('uploaded_at', { ascending: false });
+
+    const sowDocuments = (sowDocs || []).map(s => {
+      const { data: pub } = supabase.storage.from(SOW_BUCKET).getPublicUrl(s.file_path);
+      return {
+        id: s.id,
+        sowLabel: s.sow_label,
+        fileName: s.file_name,
+        fileMime: s.file_mime,
+        uploadedAt: s.uploaded_at,
+        downloadUrl: pub?.publicUrl || null
+      };
+    });
     
     res.status(200).json({
       success: true,
-      client: { ...transformClient(client), sowDocumentUrl, assignedUsers }
+      client: { ...transformClient(client), sowDocumentUrl, assignedUsers, sowDocuments, sowDocCount: sowDocuments.length }
     });
   } catch (error) {
     console.error('Error fetching client:', error);
@@ -370,6 +418,251 @@ router.post('/:id/sow-upload', protect, authorize('admin'), async (req, res) => 
     });
   } catch (error) {
     console.error('Error uploading SOW:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// ────────────────────────────────────────────────────────────────
+// MULTI-SOW DOCUMENT MANAGEMENT
+// ────────────────────────────────────────────────────────────────
+
+// Helper: auto-migrate legacy SOW stored in clients table into client_sow_documents
+async function migrateLegacySow(clientId) {
+  try {
+    const { data: client } = await supabase
+      .from('clients')
+      .select('sow_document_path, sow_document_name, sow_document_mime, sow_document_uploaded_at')
+      .eq('id', clientId)
+      .maybeSingle();
+
+    if (!client?.sow_document_path) return; // no legacy SOW
+
+    // Check if already migrated (avoid duplicates)
+    const { data: existing } = await supabase
+      .from('client_sow_documents')
+      .select('id')
+      .eq('client_id', clientId)
+      .eq('file_path', client.sow_document_path)
+      .limit(1);
+
+    if (existing && existing.length > 0) return; // already migrated
+
+    // Insert legacy SOW as SOW1
+    await supabase
+      .from('client_sow_documents')
+      .insert({
+        client_id: clientId,
+        sow_label: 'SOW1',
+        file_path: client.sow_document_path,
+        file_name: client.sow_document_name || 'legacy-sow',
+        file_mime: client.sow_document_mime || null,
+        uploaded_at: client.sow_document_uploaded_at || new Date().toISOString()
+      });
+  } catch (e) {
+    console.error('Legacy SOW migration error:', e);
+    // Non-fatal
+  }
+}
+
+// List all SOW documents for a client
+// GET /api/clients/:id/sows
+router.get('/:id/sows', protect, authorize('admin'), async (req, res) => {
+  try {
+    const clientId = req.params.id;
+
+    // Verify client exists
+    const { data: client, error: clientErr } = await supabase
+      .from('clients')
+      .select('id, name, sow_document_path')
+      .eq('id', clientId)
+      .maybeSingle();
+    if (clientErr) return res.status(500).json({ message: 'Server error', error: clientErr.message });
+    if (!client) return res.status(404).json({ message: 'Client not found' });
+
+    // Auto-migrate legacy SOW if it exists
+    if (client.sow_document_path) {
+      await migrateLegacySow(clientId);
+    }
+
+    const { data: sows, error } = await supabase
+      .from('client_sow_documents')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('uploaded_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching SOW documents:', error);
+      return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+
+    // Attach public URLs
+    const sowsWithUrls = (sows || []).map(s => {
+      const { data: pub } = supabase.storage.from(SOW_BUCKET).getPublicUrl(s.file_path);
+      return {
+        id: s.id,
+        clientId: s.client_id,
+        sowLabel: s.sow_label,
+        fileName: s.file_name,
+        fileMime: s.file_mime,
+        filePath: s.file_path,
+        uploadedAt: s.uploaded_at,
+        uploadedBy: s.uploaded_by,
+        downloadUrl: pub?.publicUrl || null
+      };
+    });
+
+    return res.status(200).json({ success: true, sows: sowsWithUrls });
+  } catch (error) {
+    console.error('Error listing SOW documents:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Upload a new SOW document for a client
+// POST /api/clients/:id/sows
+// Body: { sowLabel, fileName, contentType, base64Data }
+router.post('/:id/sows', protect, authorize('admin'), async (req, res) => {
+  try {
+    const clientId = req.params.id;
+    const { sowLabel, fileName, contentType, base64Data } = req.body || {};
+
+    if (!fileName || !base64Data) {
+      return res.status(400).json({ message: 'fileName and base64Data are required' });
+    }
+    if (!isAllowedSowType({ fileName, contentType })) {
+      return res.status(400).json({ message: 'Only .pdf, .doc, .docx files are allowed' });
+    }
+
+    // Verify client exists
+    const { data: client, error: clientErr } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('id', clientId)
+      .maybeSingle();
+    if (clientErr) return res.status(500).json({ message: 'Server error', error: clientErr.message });
+    if (!client) return res.status(404).json({ message: 'Client not found' });
+
+    // Auto-generate label if not provided: count existing + 1
+    let label = (sowLabel || '').trim();
+    if (!label) {
+      const { count } = await supabase
+        .from('client_sow_documents')
+        .select('*', { count: 'exact', head: true })
+        .eq('client_id', clientId);
+      label = `SOW${(count || 0) + 1}`;
+    }
+
+    const base64 = normalizeBase64(base64Data);
+    const buffer = Buffer.from(base64, 'base64');
+    const maxBytes = 10 * 1024 * 1024; // 10MB
+    if (!buffer || buffer.length === 0) {
+      return res.status(400).json({ message: 'Invalid file data' });
+    }
+    if (buffer.length > maxBytes) {
+      return res.status(400).json({ message: 'File too large (max 10MB)' });
+    }
+
+    const ext = getExt(fileName);
+    const safeName = safeFileName(fileName);
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const path = `${clientId}/sows/${ts}-${safeName || `sow.${ext}`}`;
+
+    const { error: uploadErr } = await supabase.storage
+      .from(SOW_BUCKET)
+      .upload(path, buffer, {
+        contentType: contentType || undefined,
+        upsert: false,
+      });
+
+    if (uploadErr) {
+      console.error('SOW upload error:', uploadErr);
+      return res.status(500).json({ message: 'Failed to upload SOW document', error: uploadErr.message });
+    }
+
+    // Insert record into client_sow_documents
+    const { data: sowDoc, error: insertErr } = await supabase
+      .from('client_sow_documents')
+      .insert({
+        client_id: clientId,
+        sow_label: label,
+        file_path: path,
+        file_name: safeName,
+        file_mime: contentType || null,
+        uploaded_by: req.user.id
+      })
+      .select()
+      .single();
+
+    if (insertErr) {
+      console.error('Error saving SOW record:', insertErr);
+      return res.status(500).json({ message: 'Failed to save SOW record', error: insertErr.message });
+    }
+
+    const { data: pub } = supabase.storage.from(SOW_BUCKET).getPublicUrl(path);
+
+    return res.status(201).json({
+      success: true,
+      message: `${label} uploaded successfully`,
+      sow: {
+        id: sowDoc.id,
+        clientId: sowDoc.client_id,
+        sowLabel: sowDoc.sow_label,
+        fileName: sowDoc.file_name,
+        fileMime: sowDoc.file_mime,
+        filePath: sowDoc.file_path,
+        uploadedAt: sowDoc.uploaded_at,
+        uploadedBy: sowDoc.uploaded_by,
+        downloadUrl: pub?.publicUrl || null
+      }
+    });
+  } catch (error) {
+    console.error('Error uploading SOW document:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Delete a specific SOW document
+// DELETE /api/clients/:id/sows/:sowId
+router.delete('/:id/sows/:sowId', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { id: clientId, sowId } = req.params;
+
+    // Fetch the SOW record
+    const { data: sowDoc, error: fetchErr } = await supabase
+      .from('client_sow_documents')
+      .select('*')
+      .eq('id', sowId)
+      .eq('client_id', clientId)
+      .maybeSingle();
+
+    if (fetchErr) return res.status(500).json({ message: 'Server error', error: fetchErr.message });
+    if (!sowDoc) return res.status(404).json({ message: 'SOW document not found' });
+
+    // Delete from storage
+    if (sowDoc.file_path) {
+      const { error: storageErr } = await supabase.storage
+        .from(SOW_BUCKET)
+        .remove([sowDoc.file_path]);
+      if (storageErr) {
+        console.error('Error deleting SOW from storage:', storageErr);
+        // Non-fatal: continue deleting the DB record
+      }
+    }
+
+    // Delete DB record
+    const { error: delErr } = await supabase
+      .from('client_sow_documents')
+      .delete()
+      .eq('id', sowId);
+
+    if (delErr) {
+      console.error('Error deleting SOW record:', delErr);
+      return res.status(500).json({ message: 'Failed to delete SOW record', error: delErr.message });
+    }
+
+    return res.status(200).json({ success: true, message: 'SOW document deleted' });
+  } catch (error) {
+    console.error('Error deleting SOW document:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
