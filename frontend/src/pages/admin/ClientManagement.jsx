@@ -12,6 +12,10 @@ export const ClientManagement = () => {
   const [loading, setLoading] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [page, setPage] = React.useState(1);
+  const [totalClients, setTotalClients] = React.useState(0);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [totalActive, setTotalActive] = React.useState(0);
+  const [totalInactive, setTotalInactive] = React.useState(0);
   const [showForm, setShowForm] = React.useState(false);
   const [editingId, setEditingId] = React.useState(null);
   const [users, setUsers] = React.useState([]);
@@ -75,10 +79,16 @@ export const ClientManagement = () => {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const response = await clientAPI.getAll({ search, page, limit: 10 });
-      setClients(response.data.clients);
-      setActiveClients(response.data.clients.filter(c => c.status === 'active'));
-      setInactiveClients(response.data.clients.filter(c => c.status === 'inactive'));
+      const response = await clientAPI.getAll({ search, page, limit: 1000 });
+      const fetched = response.data.clients || [];
+      setClients(fetched);
+      setActiveClients(fetched.filter(c => c.status === 'active'));
+      setInactiveClients(fetched.filter(c => c.status === 'inactive'));
+      setTotalClients(response.data.total || fetched.length);
+      setTotalPages(response.data.pages || 1);
+      // Compute active/inactive from total if on single page, otherwise use page counts
+      setTotalActive(fetched.filter(c => c.status === 'active').length);
+      setTotalInactive(fetched.filter(c => c.status === 'inactive').length);
     } catch (error) {
       toast.error('Failed to fetch clients');
     } finally {
@@ -426,15 +436,15 @@ export const ClientManagement = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:bg-white/15 transition-all duration-300">
             <p className="text-xs sm:text-sm font-medium text-slate-200">Total Clients</p>
-            <p className="text-3xl sm:text-4xl font-bold mt-2 text-white">{clients.length}</p>
+            <p className="text-3xl sm:text-4xl font-bold mt-2 text-white">{totalClients}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:bg-white/15 transition-all duration-300">
             <p className="text-xs sm:text-sm font-medium text-slate-200">Active Clients</p>
-            <p className="text-3xl sm:text-4xl font-bold mt-2 text-green-400">{activeClients.length}</p>
+            <p className="text-3xl sm:text-4xl font-bold mt-2 text-green-400">{totalActive}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl sm:rounded-2xl p-4 sm:p-6 hover:bg-white/15 transition-all duration-300">
             <p className="text-xs sm:text-sm font-medium text-slate-200">Inactive Clients</p>
-            <p className="text-3xl sm:text-4xl font-bold mt-2 text-red-400">{inactiveClients.length}</p>
+            <p className="text-3xl sm:text-4xl font-bold mt-2 text-red-400">{totalInactive}</p>
           </div>
         </div>
 
@@ -976,6 +986,44 @@ export const ClientManagement = () => {
             </div>
           ) : (
             <p className="text-center py-8 text-slate-300">No clients found</p>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 sm:mt-6 pt-4 border-t border-white/10">
+              <p className="text-xs sm:text-sm text-slate-300">
+                Page {page} of {totalPages} ({totalClients} total clients)
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="px-3 sm:px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-semibold rounded-lg transition-all min-h-[36px]"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`px-3 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all min-h-[36px] ${
+                      p === page
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white/10 hover:bg-white/20 text-white'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="px-3 sm:px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-semibold rounded-lg transition-all min-h-[36px]"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
