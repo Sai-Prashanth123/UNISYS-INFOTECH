@@ -4,11 +4,20 @@ import { hoursAPI, clientAPI } from '../../api/endpoints.js';
 import { toast } from 'react-toastify';
 import { Plus } from 'lucide-react';
 
+// Format today's date as YYYY-MM-DD using local timezone (not UTC)
+const getLocalToday = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 export const LogHours = () => {
   const isDark = useThemeStore((state) => state.isDark);
   const [clients, setClients] = React.useState([]);
   const [formData, setFormData] = React.useState({
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalToday(),
     hoursWorked: '',
     taskDescription: '',
     category: 'Development',
@@ -72,7 +81,7 @@ export const LogHours = () => {
 
       toast.success('Hours logged successfully!');
       setFormData({
-        date: new Date().toISOString().split('T')[0],
+        date: getLocalToday(),
         hoursWorked: '',
         taskDescription: '',
         category: 'Development',
@@ -104,7 +113,7 @@ export const LogHours = () => {
                   value={formData.date}
                   onChange={handleChange}
                   className={isDark ? 'input-field-dark' : 'input-field'}
-                  max={new Date().toISOString().split('T')[0]}
+                  max={getLocalToday()}
                   required
                 />
               </div>

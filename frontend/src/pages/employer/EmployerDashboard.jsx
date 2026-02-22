@@ -127,10 +127,18 @@ export const EmployerDashboard = () => {
     }
   };
 
+  // Format a local Date as YYYY-MM-DD without UTC conversion
+  const formatLocalDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const fetchWeeklySummary = async () => {
     setLoading(true);
     try {
-      const startDate = currentWeekStart.toISOString().split('T')[0];
+      const startDate = formatLocalDate(currentWeekStart);
       const response = await timeCardAPI.getWeeklySummary(startDate);
       
       // Filter by selected employee if needed

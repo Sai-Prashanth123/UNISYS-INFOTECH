@@ -77,14 +77,15 @@ router.post('/', protect, authorize('employee', 'employer'), [
       });
     }
 
-    // Validate date format and normalize
+    // Validate date format and normalize - use split to avoid UTC timezone shift
     let normalizedDate;
     try {
       const dateObj = new Date(date);
       if (isNaN(dateObj.getTime())) {
         throw new Error('Invalid date format');
       }
-      normalizedDate = dateObj.toISOString().split('T')[0];
+      // Extract YYYY-MM-DD from the input string directly to avoid UTC conversion
+      normalizedDate = String(date).split('T')[0];
       console.log(`[${requestId}] Date normalized: ${date} -> ${normalizedDate}`);
     } catch (dateError) {
       console.error(`[${requestId}] Date validation error:`, dateError);
@@ -681,10 +682,10 @@ router.get('/employer/entries', protect, authorize('employer'), async (req, res)
     }
 
     if (startDate) {
-      query = query.gte('date', new Date(startDate).toISOString().split('T')[0]);
+      query = query.gte('date', String(startDate).split('T')[0]);
     }
     if (endDate) {
-      query = query.lte('date', new Date(endDate).toISOString().split('T')[0]);
+      query = query.lte('date', String(endDate).split('T')[0]);
     }
 
     query = query.order('date', { ascending: false });
@@ -843,18 +844,18 @@ router.get('/employer/weekly-summary', protect, authorize('employer'), async (re
       return res.status(400).json({ message: 'Start date is required' });
     }
 
-    // Calculate week range (7 days from startDate)
-    const weekStart = new Date(startDate);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
-    weekEnd.setHours(23, 59, 59, 999);
+    // Calculate week range (7 days from startDate) using UTC to avoid timezone shift
+    const [sy, sm, sd] = startDate.split('-').map(Number);
+    const weekEndUTC = new Date(Date.UTC(sy, sm - 1, sd + 6));
+    const weekStartStr = startDate; // already YYYY-MM-DD
+    const weekEndStr = weekEndUTC.toISOString().split('T')[0];
 
     const { data: timeCards, error } = await supabase
       .from('time_cards')
       .select('*')
       .eq('employer_id', employerId)
-      .gte('date', weekStart.toISOString().split('T')[0])
-      .lte('date', weekEnd.toISOString().split('T')[0])
+      .gte('date', weekStartStr)
+      .lte('date', weekEndStr)
       .order('employee_id', { ascending: true })
       .order('date', { ascending: true });
 
@@ -910,8 +911,8 @@ router.get('/employer/weekly-summary', protect, authorize('employer'), async (re
 
     res.status(200).json({
       success: true,
-      weekStart: weekStart.toISOString().split('T')[0],
-      weekEnd: weekEnd.toISOString().split('T')[0],
+      weekStart: weekStartStr,
+      weekEnd: weekEndStr,
       summary: Object.values(summary)
     });
   } catch (error) {
@@ -938,15 +939,18 @@ router.get('/employer/monthly-summary', protect, authorize('employer'), async (r
       return res.status(400).json({ message: 'Invalid month/year' });
     }
 
-    const monthStart = new Date(targetYear, targetMonth, 1);
-    const monthEnd = new Date(targetYear, targetMonth + 1, 0);
+    // Build date strings directly from year/month to avoid server timezone shift
+    const pad = (n) => String(n).padStart(2, '0');
+    const monthStartStr = `${targetYear}-${pad(targetMonth + 1)}-01`;
+    const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+    const monthEndStr = `${targetYear}-${pad(targetMonth + 1)}-${pad(lastDay)}`;
 
     let query = supabase
       .from('time_cards')
       .select('*')
       .eq('employer_id', employerId)
-      .gte('date', monthStart.toISOString().split('T')[0])
-      .lte('date', monthEnd.toISOString().split('T')[0])
+      .gte('date', monthStartStr)
+      .lte('date', monthEndStr)
       .order('employee_id', { ascending: true })
       .order('date', { ascending: true });
 
@@ -1009,8 +1013,8 @@ router.get('/employer/monthly-summary', protect, authorize('employer'), async (r
 
     res.status(200).json({
       success: true,
-      monthStart: monthStart.toISOString().split('T')[0],
-      monthEnd: monthEnd.toISOString().split('T')[0],
+      monthStart: monthStartStr,
+      monthEnd: monthEndStr,
       month: targetMonth + 1,
       year: targetYear,
       summary: Object.values(summary)
@@ -1042,10 +1046,10 @@ router.get('/admin/all-entries', protect, authorize('admin'), async (req, res) =
     }
 
     if (startDate) {
-      query = query.gte('date', new Date(startDate).toISOString().split('T')[0]);
+      query = query.gte('date', String(startDate).split('T')[0]);
     }
     if (endDate) {
-      query = query.lte('date', new Date(endDate).toISOString().split('T')[0]);
+      query = query.lte('date', String(endDate).split('T')[0]);
     }
 
     query = query.order('date', { ascending: false });
@@ -1225,14 +1229,15 @@ router.get('/admin/monthly-summary', protect, authorize('admin'), async (req, re
     }
 
     // Calculate date range for the selected month (month is 1-based from client)
-    const startDate = new Date(yearNum, monthNum - 1, 1);
-    const endDate = new Date(yearNum, monthNum, 0);
-    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    // Build strings directly to avoid server timezone shift
+    const padM = (n) => String(n).padStart(2, '0');
+    const lastDayOfMonth = new Date(Date.UTC(yearNum, monthNum, 0)).getUTCDate();
+    const startStr = `${yearNum}-${padM(monthNum)}-01`;
+    const endStr = `${yearNum}-${padM(monthNum)}-${padM(lastDayOfMonth)}`;
+    // Validate the constructed dates
+    if (!startStr || !endStr) {
       return res.status(400).json({ message: 'Invalid date range' });
     }
-
-    const startStr = startDate.toISOString().split('T')[0];
-    const endStr = endDate.toISOString().split('T')[0];
 
     // Fetch all timecards for the month
     const { data: timeCards, error } = await supabase
@@ -1320,10 +1325,10 @@ router.get('/admin/stats', protect, authorize('admin'), async (req, res) => {
     let query = supabase.from('time_cards').select('*');
 
     if (startDate) {
-      query = query.gte('date', new Date(startDate).toISOString().split('T')[0]);
+      query = query.gte('date', String(startDate).split('T')[0]);
     }
     if (endDate) {
-      query = query.lte('date', new Date(endDate).toISOString().split('T')[0]);
+      query = query.lte('date', String(endDate).split('T')[0]);
     }
 
     const { data: timeCards, error } = await query;
@@ -1342,7 +1347,8 @@ router.get('/admin/stats', protect, authorize('admin'), async (req, res) => {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     
     (timeCards || []).forEach(card => {
-      const dayIndex = new Date(card.date).getDay();
+      // Use UTC noon to avoid any timezone shift when determining day of week
+      const dayIndex = new Date(String(card.date).split('T')[0] + 'T12:00:00Z').getUTCDay();
       const dayName = dayNames[dayIndex];
       hoursByDay[dayName] += parseFloat(card.hours_worked || 0);
     });

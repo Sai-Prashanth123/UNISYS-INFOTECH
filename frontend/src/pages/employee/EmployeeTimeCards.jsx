@@ -46,14 +46,22 @@ export const EmployeeTimeCards = () => {
     }
   };
 
+  // Format a local Date object as YYYY-MM-DD without UTC conversion
+  const formatLocalDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const fetchTimeCards = async () => {
     try {
       const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-      
+
       const response = await timeCardAPI.getMyEntries({
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0]
+        startDate: formatLocalDate(startDate),
+        endDate: formatLocalDate(endDate)
       });
       
       console.log('Fetched timecards:', response.data.timeCards);
@@ -204,11 +212,11 @@ export const EmployeeTimeCards = () => {
 
   const handleDateClick = (date) => {
     setSelectedDate(date);
-    
-    // Check if entry exists for this date
+
+    // Compare as YYYY-MM-DD strings to avoid UTC/local timezone shift
+    const dateStr = formatLocalDate(date);
     const existing = timeCards.find(tc => {
-      const tcDate = new Date(tc.date);
-      return tcDate.toDateString() === date.toDateString();
+      return String(tc.date).split('T')[0] === dateStr;
     });
     
     if (existing) {
@@ -254,10 +262,8 @@ export const EmployeeTimeCards = () => {
 
   const getHoursForDate = (date) => {
     if (!date) return null;
-    const entry = timeCards.find(tc => {
-      const tcDate = new Date(tc.date);
-      return tcDate.toDateString() === date.toDateString();
-    });
+    const dateStr = formatLocalDate(date);
+    const entry = timeCards.find(tc => String(tc.date).split('T')[0] === dateStr);
     return entry;
   };
 

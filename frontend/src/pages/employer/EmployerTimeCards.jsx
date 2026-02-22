@@ -266,15 +266,10 @@ export const EmployerTimeCards = () => {
     
     setSelectedDate(date);
     
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     const existingEntry = timeCards.find(tc => {
       if (!tc || !tc.date) return false;
-      try {
-        const tcDate = new Date(tc.date);
-        return tcDate.toDateString() === date.toDateString();
-      } catch (e) {
-        console.error('Error parsing date:', e, tc);
-        return false;
-      }
+      return String(tc.date).split('T')[0] === dateStr;
     });
 
     if (existingEntry) {
@@ -324,16 +319,8 @@ export const EmployerTimeCards = () => {
 
   const getHoursForDate = (date) => {
     if (!date) return null;
-    const entry = timeCards.find(tc => {
-      if (!tc || !tc.date) return false;
-      try {
-        const tcDate = new Date(tc.date);
-        return tcDate.toDateString() === date.toDateString();
-      } catch (e) {
-        console.error('Error parsing date in getHoursForDate:', e, tc);
-        return false;
-      }
-    });
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    const entry = timeCards.find(tc => tc?.date && String(tc.date).split('T')[0] === dateStr);
     return entry;
   };
 

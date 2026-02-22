@@ -49,24 +49,34 @@ export const AdminReports = () => {
     return new Date().getFullYear();
   });
   const [useCustomRange, setUseCustomRange] = useState(false);
+  // Format local date as YYYY-MM-DD without UTC conversion
+  const formatLocalDateStr = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const [customStartDate, setCustomStartDate] = useState(() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    return startOfMonth.toISOString().split('T')[0];
+    return formatLocalDateStr(startOfMonth);
   });
   const [customEndDate, setCustomEndDate] = useState(() => {
     const now = new Date();
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return endOfMonth.toISOString().split('T')[0];
+    return formatLocalDateStr(endOfMonth);
   });
 
-  // Helper function to get month date range
+  // Helper function to get month date range (no UTC conversion)
   const getMonthDateRange = useCallback((month, year) => {
-    const startOfMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
-    const endOfMonth = new Date(parseInt(year), parseInt(month), 0);
+    const y = parseInt(year);
+    const m = parseInt(month);
+    const startOfMonth = new Date(y, m - 1, 1);
+    const endOfMonth = new Date(y, m, 0);
     return {
-      startDate: startOfMonth.toISOString().split('T')[0],
-      endDate: endOfMonth.toISOString().split('T')[0]
+      startDate: formatLocalDateStr(startOfMonth),
+      endDate: formatLocalDateStr(endOfMonth)
     };
   }, []);
 
