@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/index.js';
 
-// PRODUCTION: Always use Azure backend URL
-// Hardcoded for production builds - no localhost fallback
-const API_BASE_URL = 'https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api';
+// Use environment variable for API URL, with Azure production URL as default
+// Set VITE_API_URL in your .env file for local development (e.g. http://localhost:5001/api)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://unisysinfotech-backend-gtgngeaueme4bhhs.centralus-01.azurewebsites.net/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

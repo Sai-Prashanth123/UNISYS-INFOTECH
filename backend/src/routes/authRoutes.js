@@ -677,6 +677,7 @@ router.post('/reset-password', [
       .from('users')
       .update({ 
         password: hashedPassword,
+        must_reset_password: false,
         updated_at: new Date().toISOString()
       })
       .eq('id', resetToken.user_id);

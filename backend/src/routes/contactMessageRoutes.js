@@ -100,8 +100,8 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
     query = query.order(sortField, { ascending: !isDescending });
     
     // Pagination
-    const limitNum = parseInt(limit);
-    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit, 10);
+    const pageNum = parseInt(page, 10);
     const offset = (pageNum - 1) * limitNum;
     query = query.range(offset, offset + limitNum - 1);
     

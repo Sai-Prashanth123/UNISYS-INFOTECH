@@ -177,8 +177,8 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
       query = query.eq('resource_name', resourceName.trim());
     }
     
-    const limitNum = parseInt(limit);
-    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit, 10);
+    const pageNum = parseInt(page, 10);
     const offset = (pageNum - 1) * limitNum;
     
     query = query
@@ -186,7 +186,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
       .range(offset, offset + limitNum - 1);
     
     const { data: clients, error } = await query;
-    
+
     if (error) {
       console.error('Error fetching clients:', error);
       return res.status(500).json({ message: 'Server error', error: error.message });
