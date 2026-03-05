@@ -38,8 +38,8 @@ router.get('/', protect, async (req, res) => {
       query = query.lte('date', new Date(endDate).toISOString().split('T')[0]);
     }
 
-    const limitNum = parseInt(limit);
-    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit, 10);
+    const pageNum = parseInt(page, 10);
     const offset = (pageNum - 1) * limitNum;
 
     query = query
@@ -58,7 +58,7 @@ router.get('/', protect, async (req, res) => {
             .from('clients')
             .select('id, name')
             .eq('id', log.client_id)
-            .single();
+            .maybeSingle();
           return {
             ...log,
             clientId: log.client_id ? { id: client?.id, name: client?.name } : null

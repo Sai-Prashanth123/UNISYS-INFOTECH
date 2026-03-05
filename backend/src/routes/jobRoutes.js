@@ -509,7 +509,7 @@ router.get('/:id', async (req, res) => {
       .from('job_postings')
       .select('*')
       .eq('id', req.params.id)
-      .single();
+      .maybeSingle();
 
     if (error || !job) {
       return res.status(404).json({

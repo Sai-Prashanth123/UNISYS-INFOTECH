@@ -195,8 +195,19 @@ router.get('/my-monthly-summary', protect, async (req, res) => {
   try {
     const { month, year } = req.query;
     const today = new Date();
-    const currentMonth = month ? parseInt(month) - 1 : today.getMonth();
-    const currentYear = year ? parseInt(year) : today.getFullYear();
+
+    let currentMonth, currentYear;
+    if (month !== undefined || year !== undefined) {
+      currentYear = year ? parseInt(year, 10) : today.getFullYear();
+      const rawMonth = month ? parseInt(month, 10) : today.getMonth() + 1;
+      if (isNaN(currentYear) || isNaN(rawMonth) || rawMonth < 1 || rawMonth > 12) {
+        return res.status(400).json({ message: 'Invalid month or year' });
+      }
+      currentMonth = rawMonth - 1; // 0-based
+    } else {
+      currentMonth = today.getMonth();
+      currentYear = today.getFullYear();
+    }
 
     const startOfMonth = new Date(currentYear, currentMonth, 1);
     const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
@@ -247,8 +258,14 @@ router.get('/monthly-employee-report', protect, authorize('admin'), async (req, 
       return res.status(400).json({ message: 'Month and year are required' });
     }
 
-    const startOfMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
-    const endOfMonth = new Date(parseInt(year), parseInt(month), 0);
+    const parsedYear = parseInt(year, 10);
+    const parsedMonth = parseInt(month, 10);
+    if (isNaN(parsedYear) || isNaN(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
+      return res.status(400).json({ message: 'Invalid month or year' });
+    }
+
+    const startOfMonth = new Date(parsedYear, parsedMonth - 1, 1);
+    const endOfMonth = new Date(parsedYear, parsedMonth, 0);
 
     // Get all employees
     const { data: employees, error: empError } = await supabase
@@ -313,8 +330,8 @@ router.get('/monthly-employee-report', protect, authorize('admin'), async (req, 
 
     res.status(200).json({
       success: true,
-      month: parseInt(month),
-      year: parseInt(year),
+      month: parsedMonth,
+      year: parsedYear,
       report: report.sort((a, b) => b.totalHours - a.totalHours),
       totals: {
         totalHours: Math.round(totals.totalHours * 10) / 10,
@@ -338,8 +355,14 @@ router.get('/monthly-employer-report', protect, authorize('admin'), async (req, 
       return res.status(400).json({ message: 'Month and year are required' });
     }
 
-    const startOfMonth = new Date(parseInt(year), parseInt(month) - 1, 1);
-    const endOfMonth = new Date(parseInt(year), parseInt(month), 0);
+    const parsedYear = parseInt(year, 10);
+    const parsedMonth = parseInt(month, 10);
+    if (isNaN(parsedYear) || isNaN(parsedMonth) || parsedMonth < 1 || parsedMonth > 12) {
+      return res.status(400).json({ message: 'Invalid month or year' });
+    }
+
+    const startOfMonth = new Date(parsedYear, parsedMonth - 1, 1);
+    const endOfMonth = new Date(parsedYear, parsedMonth, 0);
 
     // Get all employers
     const { data: employers, error: empError } = await supabase
@@ -391,8 +414,8 @@ router.get('/monthly-employer-report', protect, authorize('admin'), async (req, 
 
     res.status(200).json({
       success: true,
-      month: parseInt(month),
-      year: parseInt(year),
+      month: parsedMonth,
+      year: parsedYear,
       report: report.sort((a, b) => b.totalHours - a.totalHours),
       totals: {
         totalHours: Math.round(totals.totalHours * 10) / 10,

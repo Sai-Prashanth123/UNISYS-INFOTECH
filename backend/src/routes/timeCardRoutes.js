@@ -870,7 +870,7 @@ router.get('/employer/weekly-summary', protect, authorize('employer'), async (re
           .from('users')
           .select('id, name, email, designation')
           .eq('id', empId)
-          .single();
+          .maybeSingle();
         if (employee) employeeMap[empId] = employee;
       })
     );
@@ -932,8 +932,8 @@ router.get('/employer/monthly-summary', protect, authorize('employer'), async (r
     const { month, year, employeeId } = req.query;
 
     const today = new Date();
-    const targetYear = year ? parseInt(year) : today.getFullYear();
-    const targetMonth = month ? parseInt(month) - 1 : today.getMonth(); // 0-based
+    const targetYear = year ? parseInt(year, 10) : today.getFullYear();
+    const targetMonth = month ? parseInt(month, 10) - 1 : today.getMonth(); // 0-based
 
     if (isNaN(targetYear) || isNaN(targetMonth) || targetMonth < 0 || targetMonth > 11) {
       return res.status(400).json({ message: 'Invalid month/year' });
@@ -970,7 +970,7 @@ router.get('/employer/monthly-summary', protect, authorize('employer'), async (r
           .from('users')
           .select('id, name, email, designation')
           .eq('id', empId)
-          .single();
+          .maybeSingle();
         if (employee) employeeMap[empId] = employee;
       })
     );
@@ -1073,7 +1073,7 @@ router.get('/admin/all-entries', protect, authorize('admin'), async (req, res) =
           .from('users')
           .select('id, name, email, designation, department, hourly_pay')
           .eq('id', empId)
-          .single();
+          .maybeSingle();
         if (employee) employeeMap[empId] = employee;
       }),
       ...uniqueEmployerIds.map(async (empId) => {
@@ -1081,7 +1081,7 @@ router.get('/admin/all-entries', protect, authorize('admin'), async (req, res) =
           .from('users')
           .select('id, name, email')
           .eq('id', empId)
-          .single();
+          .maybeSingle();
         if (employer) employerMap[empId] = employer;
       }),
       // Fetch client names for all timecards
@@ -1259,7 +1259,7 @@ router.get('/admin/monthly-summary', protect, authorize('admin'), async (req, re
           .from('users')
           .select('id, name, email, role, designation, department, hourly_pay')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
         if (user) userMap[userId] = user;
       })
     );
